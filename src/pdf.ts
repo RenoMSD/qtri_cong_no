@@ -1,6 +1,6 @@
 import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
-import { TEN_CONG_TY, taiFontArial, type KhoGiay } from '../../Credit/src/lib/pdfReport';
+import { TEN_CONG_TY, taiFontArial, type KhoGiay } from './lib/chung';
 import { ngay } from './format';
 import { THANG_DIEM, thangDiem } from './mauDiem';
 import { soBoTest } from './boTest';

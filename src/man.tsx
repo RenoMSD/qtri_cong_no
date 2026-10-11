@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { UploadCloud } from 'lucide-react';
-import type { KetQua } from '../../Credit/src/lib/metrics';
-import { parseArrayBuffer } from '../../Credit/src/lib/parseWorkbook';
+import type { KetQua } from './lib/metrics';
+import { parseArrayBuffer } from './lib/parseWorkbook';
 import { ngay, soLinh, ty } from './format';
 import { ChuaSo, LocBar, tenMan, type ManId } from './khung';
 import { CHU_TEST, soBoTest } from './boTest';

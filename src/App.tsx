@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { TEN_CONG_TY } from '../../Credit/src/lib/pdfReport';
-import type { KetQua } from '../../Credit/src/lib/metrics';
-import { parseArrayBuffer } from '../../Credit/src/lib/parseWorkbook';
+import { TEN_CONG_TY } from './lib/chung';
+import type { KetQua } from './lib/metrics';
+import { parseArrayBuffer } from './lib/parseWorkbook';
 import { docTepSo, luuTepSo } from './luuSo';
 import { ngay } from './format';
 import { ChuaNap, ThanhBen, type ManId } from './khung';

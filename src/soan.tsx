@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { KhoGiay } from '../../Credit/src/lib/pdfReport';
+import type { KhoGiay } from './lib/chung';
 import { soBoTest } from './boTest';
 import { Khoi } from './khoi';
 import { KHUNG_GIAY, taiXuong, xuatBaoCao } from './pdf';
-import type { KetQua } from '../../Credit/src/lib/metrics';
+import type { KetQua } from './lib/metrics';
 import { LOAI_TEN, chonTu, mucMacDinh, soKhoi, type Loc, type LoaiDash, type MucIn, type PhamVi, type Tay } from './soLieu';
 
 const LOAI: LoaiDash[] = ['tuan', 'tc1', 'tc2', 'hoso', 'tuoi', 'thuhoi', 'ruiro', 'tongquan', 'ap', 'tien', 'mua'];

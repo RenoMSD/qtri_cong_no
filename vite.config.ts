@@ -7,7 +7,7 @@ import { defineConfig, type Plugin } from 'vite';
 
 function tepTinh(): Plugin {
   const fontPath = 'C:\\Windows\\Fonts\\arial.ttf';
-  const xlsxPath = path.resolve(__dirname, '../Credit/public/mau-test/CongNo_Demo_Test.xlsx');
+  const xlsxPath = path.resolve(__dirname, 'public/mau-test/CongNo_Demo_Test.xlsx');
   const serve: Connect.NextHandleFunction = (req, res, next) => {
     const url = req.url?.split('?')[0];
     if (url === '/api/font/arial.ttf') {
@@ -50,7 +50,10 @@ export default defineConfig({
     strictPort: true,
     host: '0.0.0.0',
     fs: {
-      allow: [path.resolve(__dirname), path.resolve(__dirname, '..')],
+      allow: [path.resolve(__dirname)],
+    },
+    watch: {
+      ignored: ['**/public/font/**', '**/public/mau-test/**'],
     },
   },
   preview: {

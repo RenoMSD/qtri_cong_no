@@ -18,7 +18,7 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
-import type { Hang } from '../../Credit/src/lib/metrics';
+import type { Hang } from './lib/metrics';
 import type { Loc } from './soLieu';
 
 export type ManId =

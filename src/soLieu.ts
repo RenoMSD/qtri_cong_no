@@ -15,7 +15,7 @@ import {
   tongHop,
   topRuiRo,
   tuanFlow,
-} from '../../Credit/src/lib/metrics';
+} from './lib/metrics';
 import { dong, ngay, pct, so1, thangNhan, ty } from './format';
 import { bacDiem, bacHanMuc, thangDiem } from './mauDiem';
 

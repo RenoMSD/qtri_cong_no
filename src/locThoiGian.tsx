@@ -7,11 +7,9 @@ import {
   type KyMeta,
   addDays,
   bucketCua,
-  diffDays,
   emptyAging,
+  tinhSoNgayQH,
   tongHop,
-  tuanFlow,
-  tuanNhanCua,
 } from './lib/metrics';
 import { ngay } from './format';
 
@@ -214,6 +212,20 @@ export function layKhoangThoiGian(loc: BoLocThoiGian, defaultMeta?: KyMeta): {
 }
 
 /**
+ * Tính số dư của một chứng từ tại cuối ngày d (đi lùi từ duCuoiKy của sổ)
+ */
+function duTaiNgay(ct: ChungTu, d: string): number {
+  let du = ct.duCuoiKy;
+  if (ct.ngayCt && ct.ngayCt > d) {
+    du -= ct.tienNo;
+  }
+  if (ct.ngayTT && ct.ngayTT > d) {
+    du += ct.tienTT;
+  }
+  return du;
+}
+
+/**
  * Áp dụng bộ lọc thời gian vào đối tượng KetQua, tái tính toán chỉ số cho toàn bộ khách hàng và biểu đồ
  */
 export function apDungBoLocThoiGian(ky: KetQua, loc: BoLocThoiGian): KetQua {
@@ -223,7 +235,7 @@ export function apDungBoLocThoiGian(ky: KetQua, loc: BoLocThoiGian): KetQua {
   }
 
   const { tuNgay, denNgay } = khoang;
-  const soNgayKy = Math.max(1, diffDays(denNgay, tuNgay) + 1);
+  const ngayTruocTuNgay = addDays(tuNgay, -1);
 
   const danhSachMoi: Khach[] = ky.khach.map((kh) => {
     const filteredCts: ChungTu[] = [];
@@ -235,53 +247,52 @@ export function apDungBoLocThoiGian(ky: KetQua, loc: BoLocThoiGian): KetQua {
     let quaHan = 0;
     let trongHan = 0;
     let qhWeighted = 0;
-    let noKhoDoi = 0;
 
     for (const ct of kh.chungTu) {
-      const psTrongKy = Boolean(ct.ngayCt && ct.ngayCt >= tuNgay && ct.ngayCt <= denNgay);
-      const ttTrongKy = Boolean(ct.ngayTT && ct.ngayTT >= tuNgay && ct.ngayTT <= denNgay);
-      const tonDau = Boolean(ct.ngayCt && ct.ngayCt < tuNgay && (!ct.ngayTT || ct.ngayTT >= tuNgay));
-      const tonCuoi = Boolean(ct.ngayCt && ct.ngayCt <= denNgay && (!ct.ngayTT || ct.ngayTT > denNgay));
+      const duCuoiCt = duTaiNgay(ct, denNgay);
+      const duDauCt = duTaiNgay(ct, ngayTruocTuNgay);
+      const tienNoKy = ct.ngayCt && ct.ngayCt >= tuNgay && ct.ngayCt <= denNgay ? ct.tienNo : 0;
+      const tienTTKy = ct.ngayTT && ct.ngayTT >= tuNgay && ct.ngayTT <= denNgay ? ct.tienTT : 0;
 
-      if (psTrongKy || ttTrongKy || tonDau || tonCuoi) {
-        const tienNoKy = psTrongKy ? ct.tienNo : 0;
-        const tienTTKy = ttTrongKy ? ct.tienTT : 0;
-        const duDauCt = tonDau ? ct.duCuoiKy || ct.tienNo : 0;
-        const duCuoiCt = tonCuoi ? ct.duCuoiKy : 0;
+      // Chỉ bỏ qua chứng từ hoàn toàn không có số dư và không có phát sinh trong kỳ lọc
+      if (duCuoiCt === 0 && duDauCt === 0 && tienNoKy === 0 && tienTTKy === 0) {
+        continue;
+      }
 
-        // Tính ngày quá hạn so với mốc chốt kỳ lọc (denNgay)
-        const denHan = ct.ngayCt ? addDays(ct.ngayCt, ct.hanTT ?? 0) : denNgay;
-        const soNgayQH = ct.ngayTT && ct.ngayTT <= denNgay
-          ? diffDays(ct.ngayTT, denHan)
-          : diffDays(denNgay, denHan);
-        const bucket = bucketCua(soNgayQH, duCuoiCt);
+      // Tuổi nợ tính lại bằng tinhSoNgayQH với mốc báo cáo là denNgay, rồi bucketCua
+      const soNgayQH = tinhSoNgayQH({
+        ngayCt: ct.ngayCt,
+        hanTT: ct.hanTT,
+        ngayTT: ct.ngayTT && ct.ngayTT <= denNgay ? ct.ngayTT : null,
+        ngayBaoCao: denNgay,
+        duCuoiKy: duCuoiCt,
+      });
+      const bucket = bucketCua(soNgayQH, duCuoiCt);
 
-        filteredCts.push({
-          ...ct,
-          duDauKy: duDauCt,
-          tienNo: tienNoKy,
-          tienTT: tienTTKy,
-          duCuoiKy: duCuoiCt,
-          soNgayQH,
-          bucket,
-        });
+      filteredCts.push({
+        ...ct,
+        duDauKy: duDauCt,
+        tienNo: tienNoKy,
+        tienTT: tienTTKy,
+        duCuoiKy: duCuoiCt,
+        soNgayQH,
+        bucket,
+      });
 
-        duDauKy += duDauCt;
-        tienNo += tienNoKy;
-        tienTT += tienTTKy;
-        duNo += duCuoiCt;
-        aging[bucket] += duCuoiCt;
+      duDauKy += duDauCt;
+      tienNo += tienNoKy;
+      tienTT += tienTTKy;
+      duNo += duCuoiCt;
+      aging[bucket] += duCuoiCt;
 
-        if (bucket === 'chuaDenHan' || bucket === 'denHan' || bucket === 'traTruocHan') {
-          trongHan += duCuoiCt;
-        }
-        if (soNgayQH > 0 && duCuoiCt > 0) {
-          quaHan += duCuoiCt;
-          qhWeighted += soNgayQH * duCuoiCt;
-        }
-        if (bucket === 'd181_365' || bucket === 'd365') {
-          noKhoDoi += duCuoiCt;
-        }
+      // Trong hạn gồm chưa đến hạn, đến hạn và trả trước hạn, kể cả số âm
+      if (bucket === 'chuaDenHan' || bucket === 'denHan' || bucket === 'traTruocHan') {
+        trongHan += duCuoiCt;
+      }
+      // Quá hạn chỉ cộng khi số ngày quá hạn > 0 và dư cuối > 0
+      if (soNgayQH > 0 && duCuoiCt > 0) {
+        quaHan += duCuoiCt;
+        qhWeighted += soNgayQH * duCuoiCt;
       }
     }
 
@@ -291,21 +302,17 @@ export function apDungBoLocThoiGian(ky: KetQua, loc: BoLocThoiGian): KetQua {
     const trongSo = 0.5 * le90 + 0.8 * d91_180 + gt180;
     const ratCao = quaHan > 0 && gt180 / quaHan >= 0.5;
 
-    // Doanh số kỳ lọc (nếu có hóa đơn mới thì dùng tienNo, hoặc tỷ lệ tương ứng)
-    const doanhSoKy = tienNo > 0 ? tienNo : kh.doanhSo * (soNgayKy / (ky.meta.soNgayKy || 180));
-    const dso365 = doanhSoKy > 0 ? (duNo / doanhSoKy) * 365 : null;
-
     return {
       ...kh,
       duDauKy,
       tienNo,
       tienTT,
       duNo,
-      quaHan,
       trongHan,
-      noKhoDoi,
-      doanhSo: doanhSoKy,
-      dso365,
+      denHan: aging.denHan,
+      chuaDenHan: aging.chuaDenHan,
+      quaHan,
+      ngayQhBq: quaHan > 0 ? Math.round(qhWeighted / quaHan) : null,
       aging,
       chungTu: filteredCts,
       le90,
@@ -313,31 +320,40 @@ export function apDungBoLocThoiGian(ky: KetQua, loc: BoLocThoiGian): KetQua {
       gt180,
       trongSo,
       ratCao,
+      // Mỗi khách giữ nguyên noKhoDoi, doanhSo, dso365, dsoGap, diem, hang, thanhPhan, hmtd:
+      noKhoDoi: kh.noKhoDoi,
+      doanhSo: kh.doanhSo,
+      dso365: kh.dso365,
+      dsoGap: kh.dsoGap,
+      diem: kh.diem,
+      hang: kh.hang,
+      thanhPhan: kh.thanhPhan,
+      hmtd: kh.hmtd,
     };
   });
 
-  const tongMoi = tongHop(danhSachMoi, soNgayKy);
+  // soNgayKy đưa vào tongHop vẫn là số ngày của sổ gốc, không phải 30 hay 90 ngày của cửa sổ:
+  const tongMoi = tongHop(danhSachMoi, ky.meta.soNgayKy);
 
+  // Sau tongHop, gán lại tong.noKhoDoi, tong.soKhachNoKhoDoi và tong.dsoKy từ sổ gốc:
+  tongMoi.noKhoDoi = ky.tong.noKhoDoi;
+  tongMoi.soKhachNoKhoDoi = ky.tong.soKhachNoKhoDoi;
+  tongMoi.dsoKy = ky.tong.dsoKy;
+
+  // Tuần thu hồi giữ nguyên: Không ghi đè tuanTu, tuanDen, tuanNhan. tuan của sổ gốc giữ nguyên:
   const metaMoi: KyMeta = {
     ...ky.meta,
     tuNgay,
     denNgay,
     ngayChot: denNgay,
-    soNgayKy,
-    tuanNhan: tuanNhanCua(denNgay),
   };
-
-  const tuanMoi = tuanFlow(
-    danhSachMoi.flatMap((k) => k.chungTu),
-    metaMoi
-  );
 
   return {
     ...ky,
     meta: metaMoi,
     khach: danhSachMoi,
     tong: tongMoi,
-    tuan: tuanMoi,
+    tuan: ky.tuan,
   };
 }
 
@@ -410,11 +426,7 @@ export function BoLocThoiGianBar({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
             onClick={() => {
-              const defaultThang =
-                locThoiGian.thang !== 'ALL'
-                  ? locThoiGian.thang
-                  : danhSachThang[0]?.giaTri || '2026-06';
-              setLocThoiGian({ ...locThoiGian, kieu: 'thang', thang: defaultThang });
+              setLocThoiGian({ ...locThoiGian, kieu: 'thang', thang: 'ALL' });
             }}
           >
             Theo Tháng
@@ -427,8 +439,7 @@ export function BoLocThoiGianBar({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
             onClick={() => {
-              const defaultQuy = locThoiGian.quy !== 'ALL' ? locThoiGian.quy : 'Q1';
-              setLocThoiGian({ ...locThoiGian, kieu: 'quy', quy: defaultQuy });
+              setLocThoiGian({ ...locThoiGian, kieu: 'quy', quy: 'ALL' });
             }}
           >
             Theo Quý
@@ -527,11 +538,7 @@ export function BoLocThoiGianBar({
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
             onClick={() => {
-              const defaultThang =
-                locThoiGian.thang !== 'ALL'
-                  ? locThoiGian.thang
-                  : danhSachThang[danhSachThang.length - 1]?.giaTri || '2026-06';
-              setLocThoiGian({ ...locThoiGian, kieu: 'thang', thang: defaultThang });
+              setLocThoiGian({ ...locThoiGian, kieu: 'thang', thang: 'ALL' });
             }}
             title="Lọc biểu đồ theo từng Tháng cụ thể"
           >
@@ -545,8 +552,7 @@ export function BoLocThoiGianBar({
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
             onClick={() => {
-              const defaultQuy = locThoiGian.quy !== 'ALL' ? locThoiGian.quy : 'Q2';
-              setLocThoiGian({ ...locThoiGian, kieu: 'quy', quy: defaultQuy });
+              setLocThoiGian({ ...locThoiGian, kieu: 'quy', quy: 'ALL' });
             }}
             title="Lọc biểu đồ theo từng Quý (Q1 - Q4)"
           >

@@ -44,7 +44,7 @@ import { CHU_TEST, soBoTest } from './boTest';
 import { DanhSachKeHoachMua } from './khoi';
 import { ManHoSo } from './man';
 import type { BoLocThoiGian } from './locThoiGian';
-import { BoLocThoiGianBar } from './locThoiGian';
+import { BoLocThoiGianBar, layKhoangThoiGian } from './locThoiGian';
 
 const MAU_BUCKET: Record<BucketKey, string> = {
   chuaDenHan: '#0284c7',
@@ -350,6 +350,11 @@ export function ManMobileApp({
                       {tong.dsoKy != null ? `${so1(tong.dsoKy)} d` : '—'}
                     </div>
                     <div className="mt-0.5 text-[9.5px] text-slate-400">Thu bình quân</div>
+                    {locThoiGian && layKhoangThoiGian(locThoiGian, ky?.meta).laLoc && (
+                      <div className="mt-1 text-[8.5px] text-amber-700 italic leading-tight">
+                        Số cả kỳ đã nạp, sheet không có ngày theo tháng.
+                      </div>
+                    )}
                   </div>
 
                   <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 text-center shadow-2xs">
@@ -360,6 +365,11 @@ export function ManMobileApp({
                     <div className="mt-0.5 text-[9.5px] text-amber-600 font-medium">
                       {tong.soKhachNoKhoDoi} KH
                     </div>
+                    {locThoiGian && layKhoangThoiGian(locThoiGian, ky?.meta).laLoc && (
+                      <div className="mt-1 text-[8.5px] text-amber-700 italic leading-tight">
+                        Số cả kỳ đã nạp, sheet không có ngày theo tháng.
+                      </div>
+                    )}
                   </div>
                 </div>
 

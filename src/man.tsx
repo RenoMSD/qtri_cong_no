@@ -571,6 +571,11 @@ export function ManTong({
                   {tong.dsoKy != null ? `${so1(tong.dsoKy)} ngày` : '—'}
                 </div>
                 <div className="mt-1 text-xs text-slate-500">Thời gian thu tiền bình quân kỳ</div>
+                {khoang?.laLoc && (
+                  <div className="mt-1.5 text-[11px] text-amber-700 italic leading-snug">
+                    Số cả kỳ đã nạp, sheet không có ngày theo tháng.
+                  </div>
+                )}
               </div>
             </div>
 
@@ -589,6 +594,11 @@ export function ManTong({
                     {tong.soKhachNoKhoDoi} khách hàng
                   </span>
                 </div>
+                {khoang?.laLoc && (
+                  <div className="mt-1.5 text-[11px] text-amber-700 italic leading-snug">
+                    Số cả kỳ đã nạp, sheet không có ngày theo tháng.
+                  </div>
+                )}
               </div>
             </div>
           </div>

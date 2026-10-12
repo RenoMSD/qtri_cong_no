@@ -1,0 +1,631 @@
+import { useMemo } from 'react';
+import { CalendarRange, RotateCcw, X } from 'lucide-react';
+import {
+  type ChungTu,
+  type KetQua,
+  type Khach,
+  type KyMeta,
+  addDays,
+  bucketCua,
+  diffDays,
+  emptyAging,
+  tongHop,
+  tuanFlow,
+  tuanNhanCua,
+} from './lib/metrics';
+import { ngay } from './format';
+
+export type KieuThoiGian = 'tat_ca' | 'thang' | 'quy';
+
+export interface BoLocThoiGian {
+  kieu: KieuThoiGian;
+  thang: string; // 'ALL' hoặc '2026-01', '2026-02', etc.
+  quy: string; // 'ALL' hoặc 'Q1', 'Q2', 'Q3', 'Q4'
+  nam: string; // '2026' hoặc năm
+}
+
+export const BO_LOC_THOI_GIAN_MAC_DINH: BoLocThoiGian = {
+  kieu: 'tat_ca',
+  thang: 'ALL',
+  quy: 'ALL',
+  nam: '2026',
+};
+
+/**
+ * Trích xuất danh sách tháng, quý, năm có trong dữ liệu sổ
+ */
+export function layDanhSachThoiGian(ky: KetQua | null) {
+  if (!ky) {
+    return {
+      danhSachThang: [
+        { giaTri: '2026-01', nhan: 'Tháng 01/2026' },
+        { giaTri: '2026-02', nhan: 'Tháng 02/2026' },
+        { giaTri: '2026-03', nhan: 'Tháng 03/2026' },
+        { giaTri: '2026-04', nhan: 'Tháng 04/2026' },
+        { giaTri: '2026-05', nhan: 'Tháng 05/2026' },
+        { giaTri: '2026-06', nhan: 'Tháng 06/2026' },
+      ],
+      danhSachQuy: [
+        { giaTri: 'Q1', nhan: 'Quý 1 (T1 – T3)', thangList: ['01', '02', '03'] },
+        { giaTri: 'Q2', nhan: 'Quý 2 (T4 – T6)', thangList: ['04', '05', '06'] },
+        { giaTri: 'Q3', nhan: 'Quý 3 (T7 – T9)', thangList: ['07', '08', '09'] },
+        { giaTri: 'Q4', nhan: 'Quý 4 (T10 – T12)', thangList: ['10', '11', '12'] },
+      ],
+      danhSachNam: ['2026'],
+      namMacDinh: '2026',
+    };
+  }
+
+  const setThang = new Set<string>();
+  const setNam = new Set<string>();
+
+  for (const kh of ky.khach) {
+    for (const ct of kh.chungTu) {
+      if (ct.ngayCt) {
+        setThang.add(ct.ngayCt.slice(0, 7));
+        setNam.add(ct.ngayCt.slice(0, 4));
+      }
+      if (ct.ngayTT) {
+        setThang.add(ct.ngayTT.slice(0, 7));
+        setNam.add(ct.ngayTT.slice(0, 4));
+      }
+    }
+  }
+
+  if (ky.meta.ngayChot) {
+    setNam.add(ky.meta.ngayChot.slice(0, 4));
+    setThang.add(ky.meta.ngayChot.slice(0, 7));
+  }
+  if (ky.meta.tuNgay) {
+    setNam.add(ky.meta.tuNgay.slice(0, 4));
+    setThang.add(ky.meta.tuNgay.slice(0, 7));
+  }
+
+  const sortedThang = [...setThang].filter((t) => /^\d{4}-\d{2}$/.test(t)).sort();
+  const sortedNam = [...setNam].filter((n) => /^\d{4}$/.test(n)).sort().reverse();
+  const namMacDinh = sortedNam[0] || '2026';
+
+  const danhSachThang = sortedThang.map((t) => {
+    const [y, m] = t.split('-');
+    return {
+      giaTri: t,
+      nhan: `Tháng ${m}/${y}`,
+    };
+  });
+
+  const danhSachQuy = [
+    { giaTri: 'Q1', nhan: 'Quý 1 (T1 – T3)', thangList: ['01', '02', '03'] },
+    { giaTri: 'Q2', nhan: 'Quý 2 (T4 – T6)', thangList: ['04', '05', '06'] },
+    { giaTri: 'Q3', nhan: 'Quý 3 (T7 – T9)', thangList: ['07', '08', '09'] },
+    { giaTri: 'Q4', nhan: 'Quý 4 (T10 – T12)', thangList: ['10', '11', '12'] },
+  ];
+
+  return {
+    danhSachThang,
+    danhSachQuy,
+    danhSachNam: sortedNam.length ? sortedNam : ['2026'],
+    namMacDinh,
+  };
+}
+
+/**
+ * Tính toán khoảng ngày [tuNgay, denNgay] từ bộ lọc
+ */
+export function layKhoangThoiGian(loc: BoLocThoiGian, defaultMeta?: KyMeta): {
+  tuNgay: string;
+  denNgay: string;
+  nhan: string;
+  laLoc: boolean;
+  thangList: string[];
+} {
+  const nam = loc.nam || '2026';
+
+  if (loc.kieu === 'tat_ca') {
+    return {
+      tuNgay: defaultMeta?.tuNgay || `${nam}-01-01`,
+      denNgay: defaultMeta?.denNgay || `${nam}-12-31`,
+      nhan: defaultMeta ? `Toàn kỳ (${ngay(defaultMeta.tuNgay)} – ${ngay(defaultMeta.denNgay)})` : 'Toàn bộ kỳ',
+      laLoc: false,
+      thangList: [],
+    };
+  }
+
+  if (loc.kieu === 'thang') {
+    if (!loc.thang || loc.thang === 'ALL') {
+      return {
+        tuNgay: defaultMeta?.tuNgay || `${nam}-01-01`,
+        denNgay: defaultMeta?.denNgay || `${nam}-12-31`,
+        nhan: 'Mọi tháng',
+        laLoc: false,
+        thangList: [],
+      };
+    }
+
+    const [y, m] = loc.thang.split('-');
+    const year = parseInt(y, 10);
+    const month = parseInt(m, 10);
+    const lastDay = new Date(year, month, 0).getDate();
+    const tuNgay = `${loc.thang}-01`;
+    const denNgay = `${loc.thang}-${String(lastDay).padStart(2, '0')}`;
+    return {
+      tuNgay,
+      denNgay,
+      nhan: `Tháng ${m}/${y}`,
+      laLoc: true,
+      thangList: [loc.thang],
+    };
+  }
+
+  if (loc.kieu === 'quy') {
+    if (!loc.quy || loc.quy === 'ALL') {
+      return {
+        tuNgay: defaultMeta?.tuNgay || `${nam}-01-01`,
+        denNgay: defaultMeta?.denNgay || `${nam}-12-31`,
+        nhan: 'Mọi quý',
+        laLoc: false,
+        thangList: [],
+      };
+    }
+
+    if (loc.quy === 'Q1') {
+      return {
+        tuNgay: `${nam}-01-01`,
+        denNgay: `${nam}-03-31`,
+        nhan: `Quý 1/${nam} (T1–T3)`,
+        laLoc: true,
+        thangList: [`${nam}-01`, `${nam}-02`, `${nam}-03`],
+      };
+    }
+    if (loc.quy === 'Q2') {
+      return {
+        tuNgay: `${nam}-04-01`,
+        denNgay: `${nam}-06-30`,
+        nhan: `Quý 2/${nam} (T4–T6)`,
+        laLoc: true,
+        thangList: [`${nam}-04`, `${nam}-05`, `${nam}-06`],
+      };
+    }
+    if (loc.quy === 'Q3') {
+      return {
+        tuNgay: `${nam}-07-01`,
+        denNgay: `${nam}-09-30`,
+        nhan: `Quý 3/${nam} (T7–T9)`,
+        laLoc: true,
+        thangList: [`${nam}-07`, `${nam}-08`, `${nam}-09`],
+      };
+    }
+    // Q4
+    return {
+      tuNgay: `${nam}-10-01`,
+      denNgay: `${nam}-12-31`,
+      nhan: `Quý 4/${nam} (T10–T12)`,
+      laLoc: true,
+      thangList: [`${nam}-10`, `${nam}-11`, `${nam}-12`],
+    };
+  }
+
+  return {
+    tuNgay: defaultMeta?.tuNgay || `${nam}-01-01`,
+    denNgay: defaultMeta?.denNgay || `${nam}-12-31`,
+    nhan: 'Toàn bộ kỳ',
+    laLoc: false,
+    thangList: [],
+  };
+}
+
+/**
+ * Áp dụng bộ lọc thời gian vào đối tượng KetQua, tái tính toán chỉ số cho toàn bộ khách hàng và biểu đồ
+ */
+export function apDungBoLocThoiGian(ky: KetQua, loc: BoLocThoiGian): KetQua {
+  const khoang = layKhoangThoiGian(loc, ky.meta);
+  if (!khoang.laLoc) {
+    return ky;
+  }
+
+  const { tuNgay, denNgay } = khoang;
+  const soNgayKy = Math.max(1, diffDays(denNgay, tuNgay) + 1);
+
+  const danhSachMoi: Khach[] = ky.khach.map((kh) => {
+    const filteredCts: ChungTu[] = [];
+    const aging = emptyAging();
+    let duDauKy = 0;
+    let tienNo = 0;
+    let tienTT = 0;
+    let duNo = 0;
+    let quaHan = 0;
+    let trongHan = 0;
+    let qhWeighted = 0;
+    let noKhoDoi = 0;
+
+    for (const ct of kh.chungTu) {
+      const psTrongKy = Boolean(ct.ngayCt && ct.ngayCt >= tuNgay && ct.ngayCt <= denNgay);
+      const ttTrongKy = Boolean(ct.ngayTT && ct.ngayTT >= tuNgay && ct.ngayTT <= denNgay);
+      const tonDau = Boolean(ct.ngayCt && ct.ngayCt < tuNgay && (!ct.ngayTT || ct.ngayTT >= tuNgay));
+      const tonCuoi = Boolean(ct.ngayCt && ct.ngayCt <= denNgay && (!ct.ngayTT || ct.ngayTT > denNgay));
+
+      if (psTrongKy || ttTrongKy || tonDau || tonCuoi) {
+        const tienNoKy = psTrongKy ? ct.tienNo : 0;
+        const tienTTKy = ttTrongKy ? ct.tienTT : 0;
+        const duDauCt = tonDau ? ct.duCuoiKy || ct.tienNo : 0;
+        const duCuoiCt = tonCuoi ? ct.duCuoiKy : 0;
+
+        // Tính ngày quá hạn so với mốc chốt kỳ lọc (denNgay)
+        const denHan = ct.ngayCt ? addDays(ct.ngayCt, ct.hanTT ?? 0) : denNgay;
+        const soNgayQH = ct.ngayTT && ct.ngayTT <= denNgay
+          ? diffDays(ct.ngayTT, denHan)
+          : diffDays(denNgay, denHan);
+        const bucket = bucketCua(soNgayQH, duCuoiCt);
+
+        filteredCts.push({
+          ...ct,
+          duDauKy: duDauCt,
+          tienNo: tienNoKy,
+          tienTT: tienTTKy,
+          duCuoiKy: duCuoiCt,
+          soNgayQH,
+          bucket,
+        });
+
+        duDauKy += duDauCt;
+        tienNo += tienNoKy;
+        tienTT += tienTTKy;
+        duNo += duCuoiCt;
+        aging[bucket] += duCuoiCt;
+
+        if (bucket === 'chuaDenHan' || bucket === 'denHan' || bucket === 'traTruocHan') {
+          trongHan += duCuoiCt;
+        }
+        if (soNgayQH > 0 && duCuoiCt > 0) {
+          quaHan += duCuoiCt;
+          qhWeighted += soNgayQH * duCuoiCt;
+        }
+        if (bucket === 'd181_365' || bucket === 'd365') {
+          noKhoDoi += duCuoiCt;
+        }
+      }
+    }
+
+    const le90 = aging.d0_30 + aging.d31_60 + aging.d61_90;
+    const d91_180 = aging.d91_120 + aging.d121_150 + aging.d151_180;
+    const gt180 = aging.d181_365 + aging.d365;
+    const trongSo = 0.5 * le90 + 0.8 * d91_180 + gt180;
+    const ratCao = quaHan > 0 && gt180 / quaHan >= 0.5;
+
+    // Doanh số kỳ lọc (nếu có hóa đơn mới thì dùng tienNo, hoặc tỷ lệ tương ứng)
+    const doanhSoKy = tienNo > 0 ? tienNo : kh.doanhSo * (soNgayKy / (ky.meta.soNgayKy || 180));
+    const dso365 = doanhSoKy > 0 ? (duNo / doanhSoKy) * 365 : null;
+
+    return {
+      ...kh,
+      duDauKy,
+      tienNo,
+      tienTT,
+      duNo,
+      quaHan,
+      trongHan,
+      noKhoDoi,
+      doanhSo: doanhSoKy,
+      dso365,
+      aging,
+      chungTu: filteredCts,
+      le90,
+      d91_180,
+      gt180,
+      trongSo,
+      ratCao,
+    };
+  });
+
+  const tongMoi = tongHop(danhSachMoi, soNgayKy);
+
+  const metaMoi: KyMeta = {
+    ...ky.meta,
+    tuNgay,
+    denNgay,
+    ngayChot: denNgay,
+    soNgayKy,
+    tuanNhan: tuanNhanCua(denNgay),
+  };
+
+  const tuanMoi = tuanFlow(
+    danhSachMoi.flatMap((k) => k.chungTu),
+    metaMoi
+  );
+
+  return {
+    ...ky,
+    meta: metaMoi,
+    khach: danhSachMoi,
+    tong: tongMoi,
+    tuan: tuanMoi,
+  };
+}
+
+/**
+ * Giao diện Thanh Bộ lọc Thời gian (Tháng / Quý) cho Header
+ */
+export function BoLocThoiGianBar({
+  ky,
+  locThoiGian,
+  setLocThoiGian,
+  compact = false,
+}: {
+  ky: KetQua | null;
+  locThoiGian: BoLocThoiGian;
+  setLocThoiGian: (next: BoLocThoiGian) => void;
+  compact?: boolean;
+}) {
+  const { danhSachThang, danhSachQuy, danhSachNam } = useMemo(
+    () => layDanhSachThoiGian(ky),
+    [ky]
+  );
+
+  const khoang = useMemo(
+    () => layKhoangThoiGian(locThoiGian, ky?.meta),
+    [locThoiGian, ky?.meta]
+  );
+
+  function resetLoc() {
+    setLocThoiGian(BO_LOC_THOI_GIAN_MAC_DINH);
+  }
+
+  // Variant dành cho mobile hẹp
+  if (compact) {
+    return (
+      <div className="flex flex-col gap-1.5 p-2 bg-slate-50 border-b border-slate-200/90 text-xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 font-semibold text-slate-800">
+            <CalendarRange className="h-3.5 w-3.5 text-[#0073E6]" />
+            <span>Kỳ xem báo cáo</span>
+          </div>
+          {khoang.laLoc && (
+            <button
+              type="button"
+              onClick={resetLoc}
+              className="text-[10.5px] text-[#0073E6] hover:underline flex items-center gap-1"
+            >
+              <RotateCcw className="h-3 w-3" />
+              <span>Đặt lại</span>
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-3 gap-1 bg-slate-200/70 p-0.5 rounded-lg text-center">
+          <button
+            type="button"
+            className={`py-1 rounded-md font-medium text-[11px] transition ${
+              locThoiGian.kieu === 'tat_ca'
+                ? 'bg-white text-[#0073E6] font-semibold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+            onClick={() => setLocThoiGian({ ...locThoiGian, kieu: 'tat_ca' })}
+          >
+            Tất cả kỳ
+          </button>
+          <button
+            type="button"
+            className={`py-1 rounded-md font-medium text-[11px] transition ${
+              locThoiGian.kieu === 'thang'
+                ? 'bg-white text-[#0073E6] font-semibold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+            onClick={() => {
+              const defaultThang =
+                locThoiGian.thang !== 'ALL'
+                  ? locThoiGian.thang
+                  : danhSachThang[0]?.giaTri || '2026-06';
+              setLocThoiGian({ ...locThoiGian, kieu: 'thang', thang: defaultThang });
+            }}
+          >
+            Theo Tháng
+          </button>
+          <button
+            type="button"
+            className={`py-1 rounded-md font-medium text-[11px] transition ${
+              locThoiGian.kieu === 'quy'
+                ? 'bg-white text-[#0073E6] font-semibold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+            onClick={() => {
+              const defaultQuy = locThoiGian.quy !== 'ALL' ? locThoiGian.quy : 'Q1';
+              setLocThoiGian({ ...locThoiGian, kieu: 'quy', quy: defaultQuy });
+            }}
+          >
+            Theo Quý
+          </button>
+        </div>
+
+        {locThoiGian.kieu === 'thang' && (
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <select
+              className="flex-1 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-xs focus:border-[#0073E6] focus:outline-hidden"
+              value={locThoiGian.thang}
+              onChange={(e) => setLocThoiGian({ ...locThoiGian, thang: e.target.value })}
+            >
+              <option value="ALL">Mọi tháng</option>
+              {danhSachThang.map((t) => (
+                <option key={t.giaTri} value={t.giaTri}>
+                  {t.nhan}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {locThoiGian.kieu === 'quy' && (
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <select
+              className="flex-1 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-xs focus:border-[#0073E6] focus:outline-hidden"
+              value={locThoiGian.quy}
+              onChange={(e) => setLocThoiGian({ ...locThoiGian, quy: e.target.value })}
+            >
+              <option value="ALL">Mọi quý</option>
+              {danhSachQuy.map((q) => (
+                <option key={q.giaTri} value={q.giaTri}>
+                  {q.nhan}
+                </option>
+              ))}
+            </select>
+            {danhSachNam.length > 1 && (
+              <select
+                className="w-20 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-xs focus:border-[#0073E6] focus:outline-hidden"
+                value={locThoiGian.nam}
+                onChange={(e) => setLocThoiGian({ ...locThoiGian, nam: e.target.value })}
+              >
+                {danhSachNam.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Variant chuẩn trên Desktop Header
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {/* Container nhóm nút thời gian */}
+      <div
+        className={`flex items-center rounded-lg border p-0.5 text-xs transition shadow-2xs ${
+          khoang.laLoc
+            ? 'border-sky-300 bg-sky-50/70 ring-2 ring-sky-100'
+            : 'border-slate-200 bg-slate-100/90'
+        }`}
+      >
+        <div className="flex items-center gap-1 px-2 py-1 text-slate-500">
+          <CalendarRange
+            className={`h-3.5 w-3.5 ${khoang.laLoc ? 'text-[#0073E6]' : 'text-slate-400'}`}
+          />
+          <span className="hidden xl:inline text-[11px] font-medium text-slate-600">
+            Kỳ xem:
+          </span>
+        </div>
+
+        {/* Chuyển kiểu: Tất cả | Tháng | Quý */}
+        <div className="flex items-center gap-0.5">
+          <button
+            type="button"
+            className={`cursor-pointer px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+              locThoiGian.kieu === 'tat_ca'
+                ? 'bg-white text-[#0073E6] shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+            }`}
+            onClick={() => setLocThoiGian({ ...locThoiGian, kieu: 'tat_ca' })}
+            title="Xem toàn bộ số liệu của kỳ nạp"
+          >
+            Tất cả
+          </button>
+          <button
+            type="button"
+            className={`cursor-pointer px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+              locThoiGian.kieu === 'thang'
+                ? 'bg-white text-[#0073E6] shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+            }`}
+            onClick={() => {
+              const defaultThang =
+                locThoiGian.thang !== 'ALL'
+                  ? locThoiGian.thang
+                  : danhSachThang[danhSachThang.length - 1]?.giaTri || '2026-06';
+              setLocThoiGian({ ...locThoiGian, kieu: 'thang', thang: defaultThang });
+            }}
+            title="Lọc biểu đồ theo từng Tháng cụ thể"
+          >
+            Theo Tháng
+          </button>
+          <button
+            type="button"
+            className={`cursor-pointer px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+              locThoiGian.kieu === 'quy'
+                ? 'bg-white text-[#0073E6] shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+            }`}
+            onClick={() => {
+              const defaultQuy = locThoiGian.quy !== 'ALL' ? locThoiGian.quy : 'Q2';
+              setLocThoiGian({ ...locThoiGian, kieu: 'quy', quy: defaultQuy });
+            }}
+            title="Lọc biểu đồ theo từng Quý (Q1 - Q4)"
+          >
+            Theo Quý
+          </button>
+        </div>
+
+        {/* Dropdown chọn Tháng cụ thể khi ở chế độ Theo Tháng */}
+        {locThoiGian.kieu === 'thang' && (
+          <div className="flex items-center pl-1 border-l border-slate-200 ml-1">
+            <select
+              className="cursor-pointer rounded-md bg-white border border-slate-200/80 px-2 py-0.5 text-xs font-medium text-slate-800 shadow-2xs hover:border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-[#0073E6]"
+              value={locThoiGian.thang}
+              onChange={(e) =>
+                setLocThoiGian({ ...locThoiGian, thang: e.target.value })
+              }
+            >
+              <option value="ALL">Mọi tháng</option>
+              {danhSachThang.map((t) => (
+                <option key={t.giaTri} value={t.giaTri}>
+                  {t.nhan}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Dropdown chọn Quý cụ thể khi ở chế độ Theo Quý */}
+        {locThoiGian.kieu === 'quy' && (
+          <div className="flex items-center pl-1 border-l border-slate-200 ml-1 gap-1">
+            <select
+              className="cursor-pointer rounded-md bg-white border border-slate-200/80 px-2 py-0.5 text-xs font-medium text-slate-800 shadow-2xs hover:border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-[#0073E6]"
+              value={locThoiGian.quy}
+              onChange={(e) =>
+                setLocThoiGian({ ...locThoiGian, quy: e.target.value })
+              }
+            >
+              <option value="ALL">Mọi quý</option>
+              {danhSachQuy.map((q) => (
+                <option key={q.giaTri} value={q.giaTri}>
+                  {q.nhan}
+                </option>
+              ))}
+            </select>
+
+            {danhSachNam.length > 1 && (
+              <select
+                className="cursor-pointer rounded-md bg-white border border-slate-200/80 px-1.5 py-0.5 text-xs font-medium text-slate-700 shadow-2xs focus:outline-hidden"
+                value={locThoiGian.nam}
+                onChange={(e) =>
+                  setLocThoiGian({ ...locThoiGian, nam: e.target.value })
+                }
+              >
+                {danhSachNam.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Badge hiển thị trạng thái lọc & nút xóa bộ lọc */}
+      {khoang.laLoc && (
+        <div className="flex items-center gap-1 rounded-lg bg-sky-100/80 border border-sky-300 px-2 py-1 text-xs text-sky-900 shadow-2xs">
+          <span className="font-semibold text-[#0073E6]">Áp dụng:</span>
+          <span className="font-medium">{khoang.nhan}</span>
+          <button
+            type="button"
+            className="cursor-pointer ml-1 p-0.5 rounded-full hover:bg-sky-200 text-sky-700 transition"
+            onClick={resetLoc}
+            title="Xóa bộ lọc thời gian, xem toàn bộ dữ liệu"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

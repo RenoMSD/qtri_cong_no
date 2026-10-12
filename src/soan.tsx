@@ -6,7 +6,7 @@ import { KHUNG_GIAY, taiXuong, xuatBaoCao } from './pdf';
 import type { KetQua } from './lib/metrics';
 import { LOAI_TEN, chonTu, mucMacDinh, soKhoi, type Loc, type LoaiDash, type MucIn, type PhamVi, type Tay } from './soLieu';
 
-const LOAI: LoaiDash[] = ['tuan', 'tc1', 'tc2', 'hoso', 'tuoi', 'thuhoi', 'ruiro', 'tongquan', 'ap', 'tien', 'mua'];
+const LOAI: LoaiDash[] = ['bgd', 'tuan', 'tc1', 'tc2', 'hoso', 'tuoi', 'thuhoi', 'ruiro', 'tongquan', 'ap', 'tien', 'mua'];
 const LOAI_TEST = new Set<LoaiDash>(['ap', 'tien', 'mua']);
 const KHO: KhoGiay[] = ['A4_NGANG', 'A4_DOC', 'A3_NGANG', 'A3_DOC'];
 

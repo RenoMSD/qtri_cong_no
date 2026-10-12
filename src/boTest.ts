@@ -1,5 +1,7 @@
 import { ty } from './format';
 import type { SoKhoi } from './soLieu';
+import type { BoLocThoiGian } from './locThoiGian';
+import { layKhoangThoiGian } from './locThoiGian';
 
 export const CHU_TEST = 'Số trình bày trên dashboard TC2 để xem màn. Không lấy từ sổ Excel và không cộng vào phải thu.';
 
@@ -78,7 +80,10 @@ function cotTy(d: { n: string; v: number }[]): { n: string; v: number; hien: str
   return d.map((x) => ({ n: x.n, v: x.v * T, hien: tySo(x.v) }));
 }
 
-export function soBoTest(id: string): SoKhoi | null {
+export function soBoTest(id: string, boLoc?: BoLocThoiGian): SoKhoi | null {
+  const khoang = boLoc ? layKhoangThoiGian(boLoc) : null;
+  const laLoc = khoang?.laLoc ?? false;
+
   if (id === 'bt-ap-kpi') {
     return {
       loai: 'kpi',
@@ -91,7 +96,10 @@ export function soBoTest(id: string): SoKhoi | null {
       ],
     };
   }
-  if (id === 'bt-ap-tuoi') return { loai: 'cot', tieu: 'Tuổi nợ phải trả', phu: CHU_TEST, d: cotTy(AP_TUOI) };
+  if (id === 'bt-ap-tuoi') {
+    const phuChu = laLoc ? `Kỳ lọc: ${khoang?.nhan} · ${CHU_TEST}` : CHU_TEST;
+    return { loai: 'cot', tieu: 'Tuổi nợ phải trả', phu: phuChu, d: cotTy(AP_TUOI) };
+  }
   if (id === 'bt-ap-ncc') {
     return {
       loai: 'bang',
@@ -121,12 +129,29 @@ export function soBoTest(id: string): SoKhoi | null {
     };
   }
   if (id === 'bt-tien-tuan') {
+    let indices = TUAN_13.map((_, i) => i);
+    if (laLoc && boLoc) {
+      if (boLoc.kieu === 'quy' && boLoc.quy === 'Q1') {
+        indices = [0, 1, 2, 3, 4, 5];
+      } else if (boLoc.kieu === 'quy' && boLoc.quy === 'Q2') {
+        indices = [6, 7, 8, 9, 10, 11, 12];
+      } else if (boLoc.kieu === 'thang') {
+        const m = parseInt(boLoc.thang.slice(-2), 10);
+        if (m === 1) indices = [0, 1];
+        else if (m === 2) indices = [2, 3];
+        else if (m === 3) indices = [4, 5];
+        else if (m === 4) indices = [6, 7];
+        else if (m === 5) indices = [8, 9];
+        else if (m >= 6) indices = [10, 11, 12];
+      }
+    }
+    const tieuDe = laLoc ? `Thu và chi dự kiến (${khoang?.nhan})` : 'Thu và chi theo tuần (13 tuần)';
     return {
       loai: 'hai',
-      tieu: 'Thu và chi theo tuần',
+      tieu: tieuDe,
       a: 'Thu',
       b: 'Chi',
-      d: TUAN_13.map((n, i) => ({ n: `${n} ${NGAY_TUAN[i]}`, a: THU_13[i] * T, b: CHI_13[i] * T })),
+      d: indices.map((i) => ({ n: `${TUAN_13[i]} ${NGAY_TUAN[i]}`, a: THU_13[i] * T, b: CHI_13[i] * T })),
     };
   }
   if (id === 'bt-tien-du') {
@@ -159,9 +184,17 @@ export function soBoTest(id: string): SoKhoi | null {
   }
   if (id === 'bt-mua-nhom') {
     return {
-      loai: 'tron',
+      loai: 'bang',
       tieu: 'Kế hoạch mua theo nhóm',
-      d: NHOM_MUA.map((g) => ({ n: g.n, v: g.keHoach * T, hien: tySo(g.keHoach) })),
+      c: ['Nhóm hàng', 'Nhu cầu', 'Kế hoạch', 'Đã duyệt', 'Đã về', 'Ngân sách'],
+      d: NHOM_MUA.map((g) => [
+        g.n,
+        tySo(g.nhuCau),
+        tySo(g.keHoach),
+        tySo(g.duyet),
+        tySo(g.ve),
+        tySo(g.nganSach),
+      ]),
     };
   }
   if (id === 'bt-mua-tien-do') {
@@ -178,3 +211,4 @@ export function soBoTest(id: string): SoKhoi | null {
   }
   return null;
 }
+

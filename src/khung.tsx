@@ -9,6 +9,8 @@ import {
   FileSpreadsheet,
   FileText,
   LayoutDashboard,
+  PanelLeftClose,
+  PanelLeftOpen,
   Printer,
   Receipt,
   ShieldAlert,
@@ -138,6 +140,13 @@ export function tenMan(id: ManId) {
 }
 
 export function ThanhBen({ man, chon }: { man: ManId; chon: (id: ManId) => void }) {
+  const [thuGon, setThuGon] = useState(() => {
+    try {
+      return localStorage.getItem('sidebar_thu_gon') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [mo, setMo] = useState<Record<string, boolean>>({
     'TỔNG QUAN ĐIỀU HÀNH': true,
     'CÔNG NỢ PHẢI THU (AR)': true,
@@ -145,29 +154,117 @@ export function ThanhBen({ man, chon }: { man: ManId; chon: (id: ManId) => void 
     'BÁO CÁO': true,
     'QUẢN TRỊ DỮ LIỆU': true,
   });
+
+  function toggleThuGon() {
+    setThuGon((v) => {
+      const next = !v;
+      try {
+        localStorage.setItem('sidebar_thu_gon', String(next));
+      } catch {}
+      return next;
+    });
+  }
+
   return (
-    <aside className="flex h-screen w-72 shrink-0 flex-col border-r border-slate-200 bg-white">
-      <div className="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-[#0073E6]">Công nợ</div>
-      <nav className="flex-1 overflow-y-auto px-2 py-2">
-        {NHOM.map((n) => (
-          <div key={n.nhom} className="mb-2">
-            <button type="button" className="flex w-full items-center justify-between px-2 py-1 text-[11px] font-semibold tracking-wide text-slate-400" onClick={() => setMo((s) => ({ ...s, [n.nhom]: !s[n.nhom] }))}>
-              {n.nhom}
-              <ChevronDown className={`h-3 w-3 ${mo[n.nhom] ? '' : '-rotate-90'}`} />
-            </button>
-            {mo[n.nhom] ? n.muc.map((m) => {
-              const Icon = m.icon;
-              const bat = man === m.id;
-              return (
-                <button key={m.id} type="button" onClick={() => chon(m.id)} className={`mb-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm ${bat ? 'bg-[#0073E6] text-white' : 'text-slate-700 hover:bg-slate-50'}`}>
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span className="leading-tight">{m.ten}</span>
-                </button>
-              );
-            }) : null}
+    <aside
+      className={`flex h-screen shrink-0 flex-col border-r border-slate-200 bg-white transition-[width] duration-200 select-none ${
+        thuGon ? 'w-16' : 'w-64'
+      }`}
+    >
+      <div
+        className={`flex h-12 items-center border-b border-slate-100 ${
+          thuGon ? 'justify-center px-1' : 'justify-between px-3.5'
+        }`}
+      >
+        {!thuGon && (
+          <div className="truncate text-sm font-bold text-[#0073E6]">
+            Tân Phú Cường
           </div>
-        ))}
+        )}
+        <button
+          type="button"
+          className="cursor-pointer rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-[#0073E6] transition"
+          onClick={toggleThuGon}
+          title={thuGon ? 'Mở rộng menu' : 'Thu gọn menu'}
+        >
+          {thuGon ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+        </button>
+      </div>
+
+      <nav className={`flex-1 overflow-y-auto ${thuGon ? 'px-2 py-2 space-y-1' : 'px-2 py-2'}`}>
+        {NHOM.map((n) => {
+          if (thuGon) {
+            return (
+              <div key={n.nhom} className="py-1 border-b border-slate-100/70 last:border-none">
+                {n.muc.map((m) => {
+                  const Icon = m.icon;
+                  const bat = man === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      title={m.ten}
+                      onClick={() => chon(m.id)}
+                      className={`cursor-pointer mb-1 flex w-full items-center justify-center rounded-lg p-2 text-sm transition ${
+                        bat
+                          ? 'bg-[#0073E6] text-white shadow-xs'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          }
+
+          return (
+            <div key={n.nhom} className="mb-2">
+              <button
+                type="button"
+                className="cursor-pointer flex w-full items-center justify-between px-2 py-1 text-[11px] font-semibold tracking-wide text-slate-400 hover:text-slate-600"
+                onClick={() => setMo((s) => ({ ...s, [n.nhom]: !s[n.nhom] }))}
+              >
+                <span className="truncate">{n.nhom}</span>
+                <ChevronDown className={`h-3 w-3 shrink-0 transition-transform ${mo[n.nhom] ? '' : '-rotate-90'}`} />
+              </button>
+              {mo[n.nhom]
+                ? n.muc.map((m) => {
+                    const Icon = m.icon;
+                    const bat = man === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => chon(m.id)}
+                        className={`cursor-pointer mb-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition ${
+                          bat ? 'bg-[#0073E6] text-white shadow-xs font-medium' : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span className="leading-tight truncate">{m.ten}</span>
+                      </button>
+                    );
+                  })
+                : null}
+            </div>
+          );
+        })}
       </nav>
+      <div className="border-t border-slate-100 p-2">
+        <button
+          type="button"
+          onClick={toggleThuGon}
+          className={`flex w-full items-center gap-2 rounded-lg p-2 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition ${
+            thuGon ? 'justify-center' : 'justify-between'
+          }`}
+          title={thuGon ? 'Mở rộng menu' : 'Thu gọn menu'}
+        >
+          {!thuGon && <span>Thu gọn thanh điều hướng</span>}
+          {thuGon ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+        </button>
+      </div>
     </aside>
   );
 }

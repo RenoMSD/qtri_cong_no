@@ -339,10 +339,43 @@ class Ve {
     this.damBao(Math.min(this.uoc(so), this.pageH - this.margin * 2 - 40));
     if (so.loai === 'kpi') {
       this.tieuKhoi(so.tieu);
-      for (let i = 0; i < so.o.length; i += 2) {
-        const a = so.o[i];
-        const b = so.o[i + 1];
-        this.dong(`${a.n}: ${a.v}${b ? `    ${b.n}: ${b.v}` : ''}`, 9);
+      if (so.o.length === 4) {
+        const slotW = (this.rong() - 18) / 4;
+        const boxH = 32;
+        const yTop = this.y - boxH;
+        so.o.forEach((item, i) => {
+          const x0 = this.margin + i * (slotW + 6);
+          this.page.drawRectangle({
+            x: x0,
+            y: yTop,
+            width: slotW,
+            height: boxH,
+            color: rgb(0.96, 0.97, 0.99),
+            borderColor: LINE,
+            borderWidth: 0.6,
+          });
+          this.page.drawText(sach(item.n).slice(0, 24), {
+            x: x0 + 6,
+            y: yTop + boxH - 11,
+            size: 7.5,
+            font: this.font,
+            color: MUTED,
+          });
+          this.page.drawText(sach(item.v).slice(0, 30), {
+            x: x0 + 6,
+            y: yTop + 6,
+            size: 8.5,
+            font: this.font,
+            color: BLUE,
+          });
+        });
+        this.y = yTop - 8;
+      } else {
+        for (let i = 0; i < so.o.length; i += 2) {
+          const a = so.o[i];
+          const b = so.o[i + 1];
+          this.dong(`${a.n}: ${a.v}${b ? `    ${b.n}: ${b.v}` : ''}`, 9);
+        }
       }
       if (so.tieu === 'Hạn mức của khách') this.bangNguong(so.o.find((o) => o.muc != null)?.muc ?? null);
     } else if (so.loai === 'cot') {
@@ -361,8 +394,41 @@ class Ve {
       this.cotDiem(so.d);
     } else if (so.loai === 'the') {
       this.tieuKhoi(so.tieu);
-      if (so.d.length === 0) this.dong('Chưa có Sale.', 9, MUTED);
-      for (const t of so.d) this.dong(`${t.ten} — ${t.dong.join(' · ')}`, 9);
+      if (so.d.length === 0) this.dong('Chưa có dữ liệu.', 9, MUTED);
+      if (so.d.length === 4) {
+        const slotW = (this.rong() - 18) / 4;
+        const boxH = 34;
+        const yTop = this.y - boxH;
+        so.d.forEach((t, i) => {
+          const x0 = this.margin + i * (slotW + 6);
+          this.page.drawRectangle({
+            x: x0,
+            y: yTop,
+            width: slotW,
+            height: boxH,
+            color: rgb(0.96, 0.97, 0.99),
+            borderColor: LINE,
+            borderWidth: 0.6,
+          });
+          this.page.drawText(sach(t.ten).slice(0, 24), {
+            x: x0 + 6,
+            y: yTop + boxH - 12,
+            size: 8,
+            font: this.font,
+            color: INK,
+          });
+          this.page.drawText(sach(t.dong.join(' · ')).slice(0, 36), {
+            x: x0 + 6,
+            y: yTop + 6,
+            size: 7,
+            font: this.font,
+            color: BLUE,
+          });
+        });
+        this.y = yTop - 8;
+      } else {
+        for (const t of so.d) this.dong(`${t.ten} — ${t.dong.join(' · ')}`, 9);
+      }
     } else if (so.loai === 'chu') {
       this.tieuKhoi(so.tieu);
       this.dong(so.van.trim() || 'Chưa ghi', 10);
@@ -394,7 +460,8 @@ class Ve {
   }
 
   bang(so: Extract<SoKhoi, { loai: 'bang' }>) {
-    this.damBao(36);
+    const uocBang = 36 + Math.min(so.d.length, 10) * 14;
+    this.damBao(Math.min(uocBang, this.pageH - this.margin * 2 - 40));
     this.tieuKhoi(so.tieu);
     const n = Math.max(so.c.length, 1);
     const w = this.rong() / n;

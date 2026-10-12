@@ -138,10 +138,18 @@ function tronTuoi(aging: Record<BucketKey, number>) {
   return BUCKET_KEYS.map((k) => ({ n: BUCKET_LABEL[k], v: Math.abs(aging[k]), hien: ty(aging[k]) })).filter((d) => d.v !== 0);
 }
 
+const MAU_HANG_RECORD: Record<Hang, string> = {
+  'Tốt': '#10b981',        // Xanh lá (tốt)
+  'Trung bình': '#3b82f6', // Xanh dương (trung bình)
+  'Xấu': '#f97316',        // Cam (xấu)
+  'Rất xấu': '#ef4444',    // Đỏ (rất xấu)
+  'Chưa chấm': '#94a3b8',  // Xám (chưa chấm)
+};
+
 function hangDem(list: Khach[]) {
   return HANG.map((h) => {
     const v = list.filter((k) => k.hang === h).length;
-    return { n: h, v, hien: `${v} khách` };
+    return { n: h, v, hien: `${v} khách`, mau: MAU_HANG_RECORD[h] };
   });
 }
 
@@ -230,6 +238,50 @@ export function soKhoi(id: string, chon: Chon): SoKhoi {
   if (id === 'tuan-nay') return { loai: 'chu', tieu: 'Ghi chú tuần này', van: tay.tuanNay };
   if (id === 'tuan-sau') return { loai: 'chu', tieu: 'Ghi chú tuần sau', van: tay.tuanSau };
   if (id === 'tuan-bang' || id === 'tc1-bang' || id === 'tuoi-bang' || id === 'rr-bang') return bangKhach(list, tay);
+  if (id === 'tq-bgd') {
+    const tyLeQh = tong.duNo > 0 ? pct(tong.quaHan / tong.duNo) : '0%';
+    return {
+      loai: 'kpi',
+      tieu: 'Chỉ tiêu điều hành',
+      o: [
+        { n: 'Dư nợ', v: ty(tong.duNo) },
+        { n: 'Quá hạn', v: `${ty(tong.quaHan)} (${tyLeQh})` },
+        { n: 'DSO kỳ', v: tong.dsoKy != null ? `${so1(tong.dsoKy)} ngày` : '—' },
+        { n: 'Nợ xấu', v: `${ty(tong.noKhoDoi)} · ${tong.soKhachNoKhoDoi} khách` },
+      ],
+    };
+  }
+  if (id === 'tq-tuoi-pct') {
+    return {
+      loai: 'cot',
+      tieu: 'Cơ cấu tuổi nợ',
+      phu: `Tỷ trọng tính trên tổng dư nợ ${ty(tong.duNo)}. Đơn vị cột: tỷ đồng.`,
+      d: BUCKET_KEYS.map((k) => {
+        const v = tong.aging[k];
+        const p = tong.duNo > 0 ? v / tong.duNo : 0;
+        return {
+          n: BUCKET_LABEL[k],
+          v,
+          hien: `${ty(v)} (${pct(p)})`,
+        };
+      }),
+    };
+  }
+  if (id === 'tq-canh-bao') {
+    const nhom = bonNhomCanhBao(list, tay);
+    return {
+      loai: 'the',
+      tieu: 'Bốn cảnh báo rủi ro',
+      d: nhom.map((n) => ({
+        id: n.id,
+        ten: n.ten,
+        dong: [
+          `${n.soKhach} khách`,
+          n.id === 'vuot-hm' ? `Phần vượt ${ty(n.tongTien)}` : `Số tiền ${ty(n.tongTien)}`,
+        ],
+      })),
+    };
+  }
   if (id === 'tc1-kpi' || id === 'tq-kpi') {
     return {
       loai: 'kpi',
@@ -398,7 +450,7 @@ export function soKhoi(id: string, chon: Chon): SoKhoi {
   return { loai: 'trong', tieu: id, dong: 'Khối này chưa có số.' };
 }
 
-export type LoaiDash = 'tuan' | 'tc1' | 'tc2' | 'hoso' | 'tuoi' | 'thuhoi' | 'ruiro' | 'tongquan' | 'ap' | 'tien' | 'mua';
+export type LoaiDash = 'tuan' | 'tc1' | 'tc2' | 'hoso' | 'tuoi' | 'thuhoi' | 'ruiro' | 'tongquan' | 'bgd' | 'ap' | 'tien' | 'mua';
 
 export const LOAI_TEN: Record<LoaiDash, string> = {
   tuan: 'Dashboard tuần',
@@ -409,6 +461,7 @@ export const LOAI_TEN: Record<LoaiDash, string> = {
   thuhoi: 'Thu hồi',
   ruiro: 'Rủi ro và hạn mức',
   tongquan: 'Tổng quan',
+  bgd: 'Báo cáo BGĐ',
   ap: 'Dashboard phải trả',
   tien: 'Dashboard dòng tiền',
   mua: 'Kế hoạch mua hàng',
@@ -427,6 +480,14 @@ const TC2_CO_DINH: [string, string][] = [
 ];
 
 export function danhMuc(loai: LoaiDash): MucKhoi[] {
+  if (loai === 'bgd') {
+    return [
+      { id: 'tq-bgd', ten: 'Bốn chỉ tiêu điều hành', macDinh: true },
+      { id: 'tq-tuoi-pct', ten: 'Tuổi nợ kèm tỷ trọng', macDinh: true },
+      { id: 'tq-canh-bao', ten: 'Bốn thẻ cảnh báo', macDinh: true },
+      { id: 'tq-top', ten: 'Mười khách rủi ro', macDinh: true },
+    ];
+  }
   if (loai === 'tuan') {
     return [
       { id: 'tuan-kpi', ten: 'Chỉ tiêu tuần', macDinh: true },
@@ -529,13 +590,129 @@ export function mucMacDinh(loai: LoaiDash): MucIn[] {
   return danhMuc(loai).map((m) => ({ id: m.id, ten: m.ten, bat: m.macDinh }));
 }
 
+export type NhomCanhBaoId = 'vuot-hm' | 'chua-hm' | 'no-xau' | 'd365';
+
+export interface MucCanhBaoKhach {
+  maKH: string;
+  tenKH: string;
+  sale: string;
+  tien: number;
+  duNo: number;
+  hmtd: number;
+  ly: string;
+  hang: Hang;
+  diem: number | null;
+}
+
+export interface NhomCanhBao {
+  id: NhomCanhBaoId;
+  ten: string;
+  soKhach: number;
+  tongTien: number;
+  danhSach: MucCanhBaoKhach[];
+}
+
+export function bonNhomCanhBao(list: Khach[], tay: Tay): NhomCanhBao[] {
+  // 1. Vượt hạn mức: Hạn mức > 0 và dư nợ > hạn mức. Tiền: phần vượt. Xếp theo phần vượt giảm dần.
+  const dsVuotHm: MucCanhBaoKhach[] = list
+    .filter((k) => k.hmtd > 0 && k.duNo > k.hmtd)
+    .map((k) => {
+      const vuot = k.duNo - k.hmtd;
+      return {
+        maKH: k.maKH,
+        tenKH: tenKhach(k, tay),
+        sale: k.sale || '—',
+        tien: vuot,
+        duNo: k.duNo,
+        hmtd: k.hmtd,
+        ly: `Vượt hạn mức ${ty(vuot)} (Hạn mức: ${ty(k.hmtd)}, Dư nợ: ${ty(k.duNo)})`,
+        hang: k.hang,
+        diem: k.diem,
+      };
+    })
+    .sort((a, b) => b.tien - a.tien);
+
+  // 2. Chưa có hạn mức: Hạn mức = 0 và dư nợ > 0. Tiền: Dư nợ. Xếp theo dư nợ giảm dần.
+  const dsChuaHm: MucCanhBaoKhach[] = list
+    .filter((k) => k.hmtd === 0 && k.duNo > 0)
+    .map((k) => ({
+      maKH: k.maKH,
+      tenKH: tenKhach(k, tay),
+      sale: k.sale || '—',
+      tien: k.duNo,
+      duNo: k.duNo,
+      hmtd: 0,
+      ly: `Chưa có hạn mức, dư nợ ${ty(k.duNo)}`,
+      hang: k.hang,
+      diem: k.diem,
+    }))
+    .sort((a, b) => b.tien - a.tien);
+
+  // 3. Nợ xấu: Nợ xấu > 0. Tiền: Nợ xấu. Xếp theo nợ xấu giảm dần.
+  const dsNoXau: MucCanhBaoKhach[] = list
+    .filter((k) => k.noKhoDoi > 0)
+    .map((k) => ({
+      maKH: k.maKH,
+      tenKH: tenKhach(k, tay),
+      sale: k.sale || '—',
+      tien: k.noKhoDoi,
+      duNo: k.duNo,
+      hmtd: k.hmtd,
+      ly: `Nợ xấu (nợ khó đòi) ${ty(k.noKhoDoi)}`,
+      hang: k.hang,
+      diem: k.diem,
+    }))
+    .sort((a, b) => b.tien - a.tien);
+
+  // 4. Quá hạn trên 365 ngày: aging.d365 > 0. Tiền: aging.d365. Xếp theo tiền giảm dần.
+  const dsD365: MucCanhBaoKhach[] = list
+    .filter((k) => k.aging.d365 > 0)
+    .map((k) => ({
+      maKH: k.maKH,
+      tenKH: tenKhach(k, tay),
+      sale: k.sale || '—',
+      tien: k.aging.d365,
+      duNo: k.duNo,
+      hmtd: k.hmtd,
+      ly: `Quá hạn trên 365 ngày: ${ty(k.aging.d365)}`,
+      hang: k.hang,
+      diem: k.diem,
+    }))
+    .sort((a, b) => b.tien - a.tien);
+
+  return [
+    {
+      id: 'vuot-hm',
+      ten: 'Vượt hạn mức',
+      soKhach: dsVuotHm.length,
+      tongTien: dsVuotHm.reduce((s, x) => s + x.tien, 0),
+      danhSach: dsVuotHm,
+    },
+    {
+      id: 'chua-hm',
+      ten: 'Chưa có hạn mức',
+      soKhach: dsChuaHm.length,
+      tongTien: dsChuaHm.reduce((s, x) => s + x.tien, 0),
+      danhSach: dsChuaHm,
+    },
+    {
+      id: 'no-xau',
+      ten: 'Nợ xấu',
+      soKhach: dsNoXau.length,
+      tongTien: dsNoXau.reduce((s, x) => s + x.tien, 0),
+      danhSach: dsNoXau,
+    },
+    {
+      id: 'd365',
+      ten: 'Quá hạn trên 365 ngày',
+      soKhach: dsD365.length,
+      tongTien: dsD365.reduce((s, x) => s + x.tien, 0),
+      danhSach: dsD365,
+    },
+  ];
+}
+
 export function canhBaoAr(list: Khach[], tay: Tay): { ma: string; ten: string; ly: string }[] {
-  const out: { ma: string; ten: string; ly: string }[] = [];
-  for (const k of list) {
-    if (k.hmtd > 0 && k.duNo > k.hmtd) out.push({ ma: k.maKH, ten: tenKhach(k, tay), ly: `Vượt hạn mức ${ty(k.duNo - k.hmtd)}` });
-    else if (k.hmtd === 0 && k.duNo > 0) out.push({ ma: k.maKH, ten: tenKhach(k, tay), ly: `Chưa có hạn mức, dư nợ ${ty(k.duNo)}` });
-    if (k.noKhoDoi > 0) out.push({ ma: k.maKH, ten: tenKhach(k, tay), ly: `Nợ xấu ${ty(k.noKhoDoi)}` });
-    else if (k.quaHan > 0 && !(k.hmtd > 0 && k.duNo > k.hmtd)) out.push({ ma: k.maKH, ten: tenKhach(k, tay), ly: `Quá hạn ${ty(k.quaHan)}` });
-  }
-  return out.slice(0, 40);
+  const nhom = bonNhomCanhBao(list, tay);
+  return nhom.flatMap((n) => n.danhSach.map((k) => ({ ma: k.maKH, ten: k.tenKH, ly: k.ly })));
 }

@@ -1,0 +1,6 @@
+{
+  "name": "Quản trị Công nợ Tân Phú Cường",
+  "description": "Hệ thống quản trị công nợ, theo dõi AR/AP, dòng tiền và xuất báo cáo tài chính Tân Phú Cường.",
+  "permissions": [],
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

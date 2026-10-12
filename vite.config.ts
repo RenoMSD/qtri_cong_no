@@ -6,7 +6,9 @@ import type { Connect } from 'vite';
 import { defineConfig, type Plugin } from 'vite';
 
 function tepTinh(): Plugin {
-  const fontPath = 'C:\\Windows\\Fonts\\arial.ttf';
+  const fontPath = fs.existsSync('C:\\Windows\\Fonts\\arial.ttf')
+    ? 'C:\\Windows\\Fonts\\arial.ttf'
+    : path.resolve(__dirname, 'public/font/BeVietnamPro-Regular.ttf');
   const xlsxPath = path.resolve(__dirname, 'public/mau-test/CongNo_Demo_Test.xlsx');
   const serve: Connect.NextHandleFunction = (req, res, next) => {
     const url = req.url?.split('?')[0];
@@ -46,9 +48,10 @@ function tepTinh(): Plugin {
 export default defineConfig({
   plugins: [react(), tailwindcss(), tepTinh()],
   server: {
-    port: 3010,
+    port: 3000,
     strictPort: true,
     host: '0.0.0.0',
+    allowedHosts: true,
     fs: {
       allow: [path.resolve(__dirname)],
     },
@@ -57,7 +60,8 @@ export default defineConfig({
     },
   },
   preview: {
-    port: 3010,
+    port: 3000,
     strictPort: true,
+    allowedHosts: true,
   },
 });

@@ -10,7 +10,8 @@ import { ManAr, ManBieu, ManCanhBao, ManHoSo, ManKeHoach, ManKhach, ManNap, ManT
 import { ManMobileApp } from './manMobile';
 import { ManBo } from './manKhac';
 import { SoanIn } from './soan';
-import { LOC_RONG, TAY_RONG, chonTu, docTay, luuTay, type Loc, type LoaiDash, type NhomCanhBaoId, type Tay } from './soLieu';
+import type { MauId } from './mauIn';
+import { LOC_RONG, TAY_RONG, chonTu, docTay, luuTay, type Loc, type NhomCanhBaoId, type Tay } from './soLieu';
 import {
   type BoLocThoiGian,
   BO_LOC_THOI_GIAN_MAC_DINH,
@@ -18,16 +19,9 @@ import {
   apDungBoLocThoiGian,
 } from './locThoiGian';
 
-function loaiCua(man: ManId, ar: 'tuan' | 'tc1' | 'tc2', hoSo: boolean): LoaiDash {
-  if (hoSo) return 'hoso';
-  if (man === 'ar') return ar;
-  if (man === 'tuoi') return 'tuoi';
-  if (man === 'thuhoi') return 'thuhoi';
-  if (man === 'ruiro') return 'ruiro';
-  if (man === 'tongquan') return 'tongquan';
-  if (man.startsWith('ap')) return 'ap';
-  if (man === 'tien' || man === 'vi_the' || man === 'dong_tien' || man === 'fc13' || man === 'lech' || man === 'kich_ban' || man === 'cb_tien') return 'tien';
-  if (man === 'nhu_cau' || man === 'kh_mua' || man === 'po' || man === 'tien_do' || man === 'ngan_sach' || man === 'lien_ap' || man === 'cb_mua') return 'mua';
+function mauTuMan(man: ManId, ar: 'tuan' | 'tc1' | 'tc2', hoSo: boolean): MauId {
+  if (hoSo || man === 'khach') return 'khach';
+  if (man === 'tongquan' || (man === 'ar' && ar === 'tc1')) return 'tc1';
   return 'tuan';
 }
 
@@ -57,6 +51,7 @@ export default function App() {
   const [nhomCanhBaoChon, setNhomCanhBaoChon] = useState<NhomCanhBaoId | null>(null);
   const [hoSo, setHoSo] = useState(false);
   const [inMo, setInMo] = useState(false);
+  const [mauIn, setMauIn] = useState<MauId>('tuan');
   const [dangMo, setDangMo] = useState(true);
   const giu = useRef(false);
 
@@ -126,6 +121,8 @@ export default function App() {
   function chonMan(id: ManId) {
     setHoSo(false);
     if (id === 'baocao') {
+      if (man !== 'baocao') setMauIn(mauTuMan(man, ar, hoSo));
+      setMan('baocao');
       setInMo(true);
       return;
     }
@@ -136,10 +133,22 @@ export default function App() {
     setInMo(false);
   }
 
+  function moBaoCao(mau: MauId) {
+    setMan('baocao');
+    setMauIn(mau);
+    setInMo(true);
+  }
+
+  function dongBaoCao() {
+    setInMo(false);
+    setMan((dang) => (dang === 'baocao' ? 'tongquan' : dang));
+  }
+
   function moHoSo(maKH: string) {
     setMa(maKH);
     setHoSo(true);
     setInMo(false);
+    setMan((dang) => (dang === 'baocao' ? 'khach' : dang));
   }
 
   const coSo = Boolean(ky && chonKy && chonLoc);
@@ -187,15 +196,7 @@ export default function App() {
 
         {inMo ? (
           <div className="w-full flex-1">
-            <SoanIn
-              ky={kyHienThi || ky}
-              loc={loc}
-              tay={tay}
-              ma={ma}
-              setMa={setMa}
-              loaiBanDau={loaiCua(man, ar, hoSo)}
-              dong={() => setInMo(false)}
-            />
+            <SoanIn ky={ky} tay={tay} mauBanDau={mauIn} moHoSo={moHoSo} dong={dongBaoCao} />
           </div>
         ) : moPhongKhung ? (
           /* Phone Frame Mockup for desktop preview */
@@ -224,7 +225,7 @@ export default function App() {
                     localStorage.setItem('che_do_giao_dien', 'web');
                   } catch {}
                 }}
-                onMoIn={() => setInMo(true)}
+                onMoIn={() => moBaoCao(mauTuMan(man, ar, hoSo))}
                 onMoNap={() => {
                   setCheDo('web');
                   setMan('nap');
@@ -252,7 +253,7 @@ export default function App() {
                   localStorage.setItem('che_do_giao_dien', 'web');
                 } catch {}
               }}
-              onMoIn={() => setInMo(true)}
+              onMoIn={() => moBaoCao(mauTuMan(man, ar, hoSo))}
               onMoNap={() => {
                 setCheDo('web');
                 setMan('nap');
@@ -267,9 +268,9 @@ export default function App() {
   // Chế độ Bản Web (Desktop)
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900">
-      <ThanhBen man={hoSo ? 'khach' : man} chon={chonMan} />
+      <ThanhBen man={inMo ? 'baocao' : hoSo ? 'khach' : man} chon={chonMan} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-2.5 shadow-2xs">
+        <header className={`flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-2.5 shadow-2xs ${inMo ? 'hidden' : ''}`}>
           <div className="flex items-center gap-4 min-w-0">
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold">{TEN_CONG_TY}</div>
@@ -326,16 +327,16 @@ export default function App() {
             <button
               type="button"
               className="cursor-pointer rounded-lg bg-[#0073E6] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-600 active:scale-95 transition"
-              onClick={() => setInMo(true)}
+              onClick={() => moBaoCao(mauTuMan(man, ar, hoSo))}
             >
               Xuất PDF
             </button>
           </div>
         </header>
 
-        <main className="min-h-0 flex-1 overflow-auto">
+        <main className={`min-h-0 flex-1 ${inMo ? 'overflow-hidden' : 'overflow-auto'}`}>
           {inMo ? (
-            <SoanIn ky={kyHienThi || ky} loc={loc} tay={tay} ma={ma} setMa={setMa} loaiBanDau={loaiCua(man, ar, hoSo)} dong={() => setInMo(false)} />
+            <SoanIn ky={ky} tay={tay} mauBanDau={mauIn} moHoSo={moHoSo} dong={dongBaoCao} />
           ) : (
             <div className="p-4">
               {man === 'nap' ? (
@@ -363,6 +364,7 @@ export default function App() {
                     setHoSo(false);
                   }}
                   onMa={moHoSo}
+                  onMoTc1={() => moBaoCao('tc1')}
                 />
               ) : null}
               {coSo && chonKy && chonLoc && man === 'ar' && !hoSo ? (

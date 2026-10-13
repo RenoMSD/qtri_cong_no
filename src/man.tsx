@@ -37,7 +37,6 @@ import { DanhSachKeHoachMua, Khoi } from './khoi';
 import type { BoLocThoiGian } from './locThoiGian';
 import { layKhoangThoiGian } from './locThoiGian';
 import { bonNhomCanhBao, soKhoi, tenKhach, type Chon, type Loc, type NhomCanhBaoId, type Tay } from './soLieu';
-import { taiXuong, xuatBaoCao } from './pdf';
 
 const MAU_BUCKET: Record<BucketKey, string> = {
   chuaDenHan: '#0284c7', // Xanh da trời (an toàn)
@@ -429,38 +428,18 @@ export function ManTong({
   boLoc,
   onMoCanhBao,
   onMa,
+  onMoTc1,
 }: {
   chon: Chon | null;
   boLoc?: BoLocThoiGian;
   onMoCanhBao?: (id: NhomCanhBaoId) => void;
   onMa?: (ma: string) => void;
+  onMoTc1?: () => void;
 }) {
-  const [dangXuatBgd, setDangXuatBgd] = useState(false);
-  const [loiXuat, setLoiXuat] = useState('');
   const [kieuBieuDo, setKieuBieuDo] = useState<'tron' | 'cot'>('tron');
   const [cheDoXemCot, setCheDoXemCot] = useState<'co_so' | 'tat_ca'>('co_so');
 
   const khoang = boLoc ? layKhoangThoiGian(boLoc, chon?.ky.meta) : null;
-
-  async function handleXuatBgd() {
-    if (!chon || dangXuatBgd) return;
-    setDangXuatBgd(true);
-    setLoiXuat('');
-    try {
-      const { bytes, tenFile } = await xuatBaoCao({
-        loai: 'bgd',
-        ids: ['tq-bgd', 'tq-tuoi-pct', 'tq-canh-bao', 'tq-top'],
-        phamVi: 'toan-bo',
-        kho: 'A4_NGANG',
-        chon,
-      });
-      taiXuong(bytes, tenFile);
-    } catch (e) {
-      setLoiXuat(e instanceof Error ? e.message : 'Không xuất được PDF.');
-    } finally {
-      setDangXuatBgd(false);
-    }
-  }
 
   const tong = chon?.tong;
   const nhomCanhBao = chon ? bonNhomCanhBao(chon.list, chon.tay) : [];
@@ -507,16 +486,15 @@ export function ManTong({
           ) : null}
           <button
             type="button"
-            disabled={!chon || dangXuatBgd}
+            disabled={!chon || !onMoTc1}
             className="cursor-pointer rounded-lg bg-[#0073E6] px-3.5 py-1.5 text-xs sm:text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 shadow-xs flex items-center gap-1.5"
-            onClick={handleXuatBgd}
+            onClick={onMoTc1}
           >
             <FileText className="h-4 w-4" />
-            {dangXuatBgd ? 'Đang xuất…' : 'Báo cáo BGĐ'}
+            Báo cáo BGĐ
           </button>
         </div>
       </div>
-      {loiXuat ? <p className="text-sm text-red-600">{loiXuat}</p> : null}
 
       {chon && tong ? (
         <>

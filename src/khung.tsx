@@ -167,7 +167,7 @@ export function ThanhBen({ man, chon }: { man: ManId; chon: (id: ManId) => void 
 
   return (
     <aside
-      className={`flex h-screen shrink-0 flex-col border-r border-slate-200 bg-white transition-[width] duration-200 select-none ${
+      className={`relative z-30 flex h-screen shrink-0 flex-col border-r border-slate-200 bg-white transition-[width] duration-200 select-none ${
         thuGon ? 'w-16' : 'w-64'
       }`}
     >

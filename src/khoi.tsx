@@ -28,7 +28,7 @@ import type { BoLocThoiGian } from './locThoiGian';
 import { layKhoangThoiGian } from './locThoiGian';
 
 const MAU = [
-  '#0073E6', // Royal Blue
+  '#1769aa',
   '#0284c7', // Sky Blue
   '#0d9488', // Teal
   '#10b981', // Emerald
@@ -42,11 +42,11 @@ const MAU = [
 ];
 
 const MAU_HANG: Record<string, string> = {
-  'Tốt': '#10b981',        // Xanh lá (tốt)
-  'Trung bình': '#3b82f6', // Xanh dương (trung bình)
-  'Xấu': '#f97316',        // Cam (xấu)
-  'Rất xấu': '#ef4444',    // Đỏ (rất xấu)
-  'Chưa chấm': '#94a3b8',  // Xám (chưa chấm)
+  'Tốt': '#27875b',
+  'Trung bình': '#1769aa',
+  'Xấu': '#b87b20',
+  'Rất xấu': '#c7634d',
+  'Chưa chấm': '#94a3b8',
 };
 
 export function truc(v: number) {
@@ -59,7 +59,7 @@ export function NhanCot({ x, y, width, value }: { x?: number; y?: number; width?
   const t = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(n / 1e9);
   const yy = Math.max(12, (y ?? 0) - 4);
   return (
-    <text x={(x ?? 0) + (width ?? 0) / 2} y={yy} textAnchor="middle" fontSize={10} fill="#0f172a" fontWeight="500">
+    <text x={(x ?? 0) + (width ?? 0) / 2} y={yy} textAnchor="middle" fontSize={10} fill="#506170" fontWeight="400">
       {t}
     </text>
   );
@@ -76,7 +76,7 @@ function Tip({ active, payload, label }: { active?: boolean; payload?: { name?: 
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow">
-      <div className="mb-1 font-medium">{label}</div>
+      <div className="mb-1">{label}</div>
       {payload.map((p) => {
         const hien = (p.payload as { hien?: string } | undefined)?.hien;
         return (
@@ -91,10 +91,10 @@ function Tip({ active, payload, label }: { active?: boolean; payload?: { name?: 
 
 export function The({ tieu, phu, children }: { tieu: string; phu?: string; children: ReactNode }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h3 className="text-sm font-semibold text-slate-800">{tieu}</h3>
-      {phu ? <p className="mt-1 text-xs text-slate-500">{phu}</p> : null}
-      <div className="mt-3">{children}</div>
+    <section className="rounded-xl border border-[#dfe6ec] bg-white p-5 shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+      <h3 className="text-[16px] font-semibold text-[#233543]">{tieu}</h3>
+      {phu ? <p className="mt-1 text-[12px] text-[#81909d]">{phu}</p> : null}
+      <div className="mt-4">{children}</div>
     </section>
   );
 }
@@ -105,20 +105,20 @@ function Cao({ children, lop = 'h-80' }: { children: ReactNode; lop?: string }) 
 
 export function BangNguong({ muc }: { muc: number | null }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <h3 className="bg-[#0073E6] px-4 py-2 text-sm font-semibold text-white">Ngưỡng cảnh báo hạn mức</h3>
-      <table className="w-full text-left text-sm">
+    <section className="overflow-hidden rounded-xl border border-[#dfe6ec] bg-white shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+      <h3 className="px-5 pt-5 text-[16px] font-semibold text-[#233543]">Ngưỡng cảnh báo hạn mức</h3>
+      <table className="mt-3 w-full text-left text-[13px]">
         <thead>
-          <tr className="bg-[#0073E6] text-white">
-            <th className="px-3 py-2 font-semibold">Ngưỡng</th>
-            <th className="px-3 py-2 font-semibold">Giá trị (%)</th>
-            <th className="px-3 py-2 font-semibold">Hành động</th>
+          <tr className="text-[12px] text-[#7b8996]">
+            <th className="px-5 py-2 font-normal">Ngưỡng</th>
+            <th className="px-3 py-2 font-normal">Giá trị (%)</th>
+            <th className="px-3 py-2 font-normal">Hành động</th>
           </tr>
         </thead>
         <tbody>
           {THANG_DIEM.map((t) => (
             <tr key={t.muc} style={{ background: t.nen, color: t.chu }} className={muc === t.muc ? 'outline outline-2 outline-offset-[-2px] outline-slate-900' : undefined}>
-              <td className="px-3 py-2 font-semibold">{t.muc}</td>
+              <td className="px-5 py-2">{t.muc}</td>
               <td className="px-3 py-2">{t.gia}</td>
               <td className="px-3 py-2">{t.hanh}</td>
             </tr>
@@ -157,7 +157,7 @@ export function Khoi({
             return (
               <div key={o.n} className="rounded-lg px-3 py-2" style={mau ? { background: mau.nen, color: mau.chu } : { background: '#f8fafc' }}>
                 <div className="text-xs" style={mau ? undefined : { color: '#64748b' }}>{o.n}</div>
-                <div className="so mt-1 text-sm font-semibold" style={mau ? undefined : { color: '#0073E6' }}>{o.v}</div>
+                <div className="so mt-1 text-[15px] font-normal" style={mau ? undefined : { color: '#304451' }}>{o.v}</div>
               </div>
             );
           })}
@@ -196,13 +196,13 @@ export function Khoi({
             <button
               key={t.id || t.ten}
               type="button"
-              className="rounded-lg border border-slate-200 bg-slate-50/50 p-3 text-left transition hover:border-[#0073E6] hover:bg-blue-50/20"
+              className="rounded-lg border border-slate-200 bg-slate-50/50 p-3 text-left transition hover:border-[#1769aa] hover:bg-blue-50/20"
               onClick={() => onThe?.(t.id)}
             >
-              <div className="text-sm font-semibold text-slate-800">{t.ten}</div>
+              <div className="text-[13px] text-[#384956]">{t.ten}</div>
               <div className="mt-2 space-y-1">
                 {t.dong.map((d, di) => (
-                  <div key={d} className={`so text-xs ${di === 0 ? 'text-slate-600' : 'font-medium text-[#0073E6]'}`}>
+                  <div key={d} className={`so text-xs ${di === 0 ? 'text-slate-600' : 'text-[#1769aa]'}`}>
                     {d}
                   </div>
                 ))}
@@ -221,7 +221,7 @@ export function Khoi({
             <thead className="sticky top-0 bg-slate-50 text-slate-500">
               <tr>
                 {so.c.map((c) => (
-                  <th key={c} className="px-2 py-1 font-medium">
+                  <th key={c} className="px-2 py-1">
                     {c}
                   </th>
                 ))}
@@ -240,7 +240,7 @@ export function Khoi({
                   {dong.map((cell, j) => (
                     <td key={j} className="so px-2 py-1">
                       {j === 0 && onMa && so.ma ? (
-                        <button type="button" className="text-[#0073E6] underline" onClick={() => onMa(so.ma![i])}>
+                        <button type="button" className="text-[#1769aa] underline" onClick={() => onMa(so.ma![i])}>
                           {cell}
                         </button>
                       ) : (
@@ -284,7 +284,7 @@ export function Khoi({
               {so.d.map((d, i) => (
                 <div key={d.n} className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: d.v < 0 ? '#b91c1c' : MAU[i % MAU.length] }} />
-                  <span className="font-medium text-slate-700">{d.n}</span>
+                  <span className="text-[#506170]">{d.n}</span>
                 </div>
               ))}
             </div>
@@ -308,7 +308,7 @@ export function Khoi({
                   <YAxis tickFormatter={truc} tick={{ fontSize: 10 }} width={48} domain={mienY(so.d.flatMap((d) => [d.a, d.b]))} />
                   <Tooltip content={<Tip />} />
                   <Legend verticalAlign="top" align="right" height={32} iconType="rect" wrapperStyle={{ fontSize: 12, paddingBottom: 4 }} />
-                  <Area dataKey="a" name={so.a} stroke="#0073E6" fill="#0073E6" fillOpacity={0.2} isAnimationActive={false} />
+                  <Area dataKey="a" name={so.a} stroke="#1769aa" fill="#1769aa" fillOpacity={0.2} isAnimationActive={false} />
                   <Area dataKey="b" name={so.b} stroke="#14b8a6" fill="#14b8a6" fillOpacity={0.15} isAnimationActive={false} />
                 </AreaChart>
               ) : (
@@ -318,7 +318,7 @@ export function Khoi({
                   <YAxis tickFormatter={truc} tick={{ fontSize: 10 }} width={48} domain={mienY(so.d.flatMap((d) => [d.a, d.b]))} />
                   <Tooltip content={<Tip />} />
                   <Legend verticalAlign="top" align="right" height={32} iconType="rect" wrapperStyle={{ fontSize: 12, paddingBottom: 4 }} />
-                  <Bar dataKey="a" name={so.a} fill="#0073E6" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+                  <Bar dataKey="a" name={so.a} fill="#1769aa" radius={[3, 3, 0, 0]} isAnimationActive={false} />
                   <Bar dataKey="b" name={so.b} fill="#14b8a6" radius={[3, 3, 0, 0]} isAnimationActive={false} />
                 </BarChart>
               )}
@@ -364,7 +364,7 @@ export function Khoi({
                 <PolarGrid />
                 <PolarAngleAxis dataKey="n" tick={{ fontSize: 10 }} />
                 <PolarRadiusAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
-                <Radar dataKey="v" name="Điểm" stroke="#0073E6" fill="#0073E6" fillOpacity={0.35} isAnimationActive={false} />
+                <Radar dataKey="v" name="Điểm" stroke="#1769aa" fill="#1769aa" fillOpacity={0.35} isAnimationActive={false} />
               </RadarChart>
             </ResponsiveContainer>
           </Cao>
@@ -376,7 +376,7 @@ export function Khoi({
             return (
               <li key={d.n} className="flex items-center justify-between gap-2 rounded px-2 py-1" style={mau ? { background: mau.nen, color: mau.chu } : { background: '#f8fafc', color: '#64748b' }}>
                 <span>{d.n}</span>
-                <span className="so font-semibold">{d.hien}</span>
+                <span className="so">{d.hien}</span>
               </li>
             );
           })}
@@ -391,13 +391,15 @@ export function Khoi({
           <div className="mb-1 text-xs text-slate-500">{so.trai.tieu}</div>
           <Cao>
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-              <BarChart data={so.trai.d} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="n" interval={0} angle={-32} textAnchor="end" height={72} tickMargin={8} tick={{ fontSize: 10 }} />
-                <YAxis tickFormatter={truc} tick={{ fontSize: 10 }} width={40} domain={mienY(so.trai.d.map((d) => d.v))} />
+              <PieChart>
+                <Pie data={so.trai.d.filter((d) => d.v !== 0).map((d) => ({ ...d, v: Math.abs(d.v) }))} dataKey="v" nameKey="n" innerRadius={46} outerRadius={78}>
+                  {so.trai.d.filter((d) => d.v !== 0).map((d, i) => (
+                    <Cell key={d.n} fill={MAU[i % MAU.length]} />
+                  ))}
+                </Pie>
                 <Tooltip content={<Tip />} />
-                <Bar dataKey="v" name="Số tiền" fill="#0073E6" radius={[3, 3, 0, 0]} isAnimationActive={false} />
-              </BarChart>
+                <Legend verticalAlign="bottom" height={32} iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 6 }} />
+              </PieChart>
             </ResponsiveContainer>
           </Cao>
         </div>
@@ -425,19 +427,19 @@ export function Khoi({
 export function DanhSachKeHoachMua({ boLoc }: { boLoc?: BoLocThoiGian } = {}) {
   const khoang = boLoc ? layKhoangThoiGian(boLoc) : null;
   return (
-    <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs">
+    <div className="rounded-xl border border-[#dfe6ec] bg-white p-4 shadow-xs">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5 mb-3">
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">Kế hoạch mua theo nhóm</h3>
+          <h3 className="text-[16px] font-semibold text-[#233543]">Kế hoạch mua theo nhóm</h3>
           <p className="text-xs text-slate-500">Dạng danh sách tiến độ thực hiện và giải ngân ngân sách theo từng nhóm hàng</p>
         </div>
         <div className="flex items-center gap-2">
           {khoang?.laLoc && (
-            <span className="text-xs font-medium text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
+            <span className="text-xs text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
               Kỳ: {khoang.nhan}
             </span>
           )}
-          <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+          <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
             4 nhóm vật tư chính
           </span>
         </div>
@@ -450,11 +452,11 @@ export function DanhSachKeHoachMua({ boLoc }: { boLoc?: BoLocThoiGian } = {}) {
           return (
             <div
               key={g.n}
-              className="rounded-lg border border-slate-200/80 bg-slate-50/50 p-3.5 hover:border-[#0073E6]/60 transition"
+              className="rounded-lg border border-slate-200/80 bg-slate-50/50 p-3.5 hover:border-[#1769aa]/60 transition"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-bold text-slate-800">{g.n}</span>
-                <span className="text-xs font-medium text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                <span className="text-sm font-normal text-slate-800">{g.n}</span>
+                <span className="text-xs text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
                   Nhu cầu: {g.nhuCau} tỷ
                 </span>
               </div>
@@ -463,13 +465,13 @@ export function DanhSachKeHoachMua({ boLoc }: { boLoc?: BoLocThoiGian } = {}) {
               <div className="space-y-1 mb-2.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-500">Đã về / Kế hoạch:</span>
-                  <span className="font-semibold text-slate-800">
+                  <span className="text-[#384956]">
                     {g.ve} / {g.keHoach} tỷ ({tyLeVe.toFixed(1)}%)
                   </span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                   <div
-                    className="h-full rounded-full bg-[#0073E6] transition-all"
+                    className="h-full rounded-full bg-[#1769aa] transition-all"
                     style={{ width: `${Math.min(100, tyLeVe)}%` }}
                   />
                 </div>
@@ -479,7 +481,7 @@ export function DanhSachKeHoachMua({ boLoc }: { boLoc?: BoLocThoiGian } = {}) {
               <div className="space-y-1 mb-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-500">Ngân sách đã dùng:</span>
-                  <span className="font-semibold text-slate-800">
+                  <span className="text-[#384956]">
                     {g.dung} / {g.nganSach} tỷ ({tyLeDung.toFixed(1)}%)
                   </span>
                 </div>
@@ -494,8 +496,8 @@ export function DanhSachKeHoachMua({ boLoc }: { boLoc?: BoLocThoiGian } = {}) {
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 text-[11px] text-slate-500">
-                <span>Đã duyệt: <strong className="text-slate-700">{g.duyet} tỷ</strong></span>
-                <span>Còn lại về: <strong className="text-[#0073E6]">{Math.max(0, g.keHoach - g.ve)} tỷ</strong></span>
+                <span>Đã duyệt: <span className="text-[#506170]">{g.duyet} tỷ</span></span>
+                <span>Còn lại về: <span className="text-[#1769aa]">{Math.max(0, g.keHoach - g.ve)} tỷ</span></span>
               </div>
             </div>
           );

@@ -1,7 +1,11 @@
 import {
   BUCKET_KEYS,
   BUCKET_LABEL,
+  addDays,
+  diffDays,
+  tuanNhanCua,
   type BucketKey,
+  type ChungTu,
   type Hang,
   type Khach,
   type KetQua,
@@ -62,6 +66,83 @@ export function luuTay(checksum: string, tay: Tay) {
 
 export function tenKhach(kh: Khach, tay: Tay): string {
   return tay.ten[kh.maKH]?.trim() || kh.tenKH || kh.maKH;
+}
+
+export interface DongTuan {
+  n: string;
+  quaHan: number;
+  tienThu: number;
+}
+
+function duQuaHanTai(ct: ChungTu, moc: string, ngayChot: string): number {
+  if (moc >= ngayChot) return ct.soNgayQH > 0 && ct.duCuoiKy > 0 ? ct.duCuoiKy : 0;
+  if (!ct.ngayCt || ct.ngayCt > moc) return 0;
+  const denHan = addDays(ct.ngayCt, ct.hanTT ?? 0);
+  if (diffDays(moc, denHan) <= 0) return 0;
+  const daThu = ct.ngayTT != null && ct.ngayTT <= moc;
+  const du = daThu ? ct.duCuoiKy : ct.duCuoiKy + Math.max(0, ct.tienTT);
+  return du > 0 ? du : 0;
+}
+
+function nhanLui(tuanNhan: string, buocLui: number): string {
+  const m = tuanNhan.match(/^T(\d+)\/(\d+)$/);
+  if (!m) return tuanNhan;
+  let tuan = Number(m[1]) - buocLui;
+  let nam = Number(m[2]);
+  while (tuan <= 0) {
+    tuan += 52;
+    nam -= 1;
+  }
+  return `T${String(tuan).padStart(2, '0')}/${String(nam).padStart(2, '0')}`;
+}
+
+export function chuoi8Tuan(list: Khach[], ngayChot: string, tuanNhan = ''): DongTuan[] {
+  const cts = list.flatMap((k) => k.chungTu);
+  const dong: DongTuan[] = [];
+  for (let i = 7; i >= 0; i -= 1) {
+    const den = addDays(ngayChot, -7 * i);
+    const tu = addDays(den, -6);
+    let quaHan = 0;
+    let tienThu = 0;
+    for (const ct of cts) {
+      quaHan += duQuaHanTai(ct, den, ngayChot);
+      if (ct.ngayTT && ct.ngayTT >= tu && ct.ngayTT <= den) tienThu += ct.tienTT;
+    }
+    dong.push({ n: tuanNhan ? nhanLui(tuanNhan, i) : tuanNhanCua(den), quaHan, tienThu });
+  }
+  return dong;
+}
+
+export function cauQuaHanTuan(dong: DongTuan[]): { cau: string; huong: 'tang' | 'giam' | 'bang' | 'thieu' } {
+  if (dong.length < 2) return { cau: 'Chưa đủ tuần trước để so sánh.', huong: 'thieu' };
+  const lech = dong[dong.length - 1].quaHan - dong[dong.length - 2].quaHan;
+  if (Math.abs(lech) < 5_000_000) return { cau: 'Quá hạn tuần này không đổi so với tuần trước.', huong: 'bang' };
+  if (lech > 0) return { cau: `Quá hạn tuần này tăng ${ty(lech)} so với tuần trước.`, huong: 'tang' };
+  return { cau: `Quá hạn tuần này giảm ${ty(Math.abs(lech))} so với tuần trước.`, huong: 'giam' };
+}
+
+export interface CotKhach {
+  ma: string;
+  n: string;
+  ten: string;
+  sale: string;
+  duNo: number;
+  quaHan: number;
+  dam: number;
+  con: number;
+}
+
+export function namKhachChiem(list: Khach[], tay: Tay): CotKhach[] {
+  return [...list]
+    .filter((k) => k.duNo > 0)
+    .sort((a, b) => b.duNo - a.duNo || a.maKH.localeCompare(b.maKH))
+    .slice(0, 5)
+    .map((k) => {
+      const ten = tenKhach(k, tay);
+      const sale = k.sale || 'Chưa gán Sale';
+      const dam = Math.min(Math.max(k.quaHan, 0), k.duNo);
+      return { ma: k.maKH, n: `${ten} · ${sale}`, ten, sale, duNo: k.duNo, quaHan: k.quaHan, dam, con: Math.max(0, k.duNo - dam) };
+    });
 }
 
 export type Chon = {
@@ -202,7 +283,7 @@ export function soKhoi(id: string, chon: Chon): SoKhoi {
     };
   }
   if (id === 'tuan-tuoi' || id === 'tuoi-cot' || id === 'tq-tuoi') {
-    return { loai: 'cot', tieu: 'Cơ cấu tuổi nợ', d: cotTuoi(tong.aging) };
+    return { loai: 'tron', tieu: 'Cơ cấu tuổi nợ', d: tronTuoi(tong.aging) };
   }
   if (id === 'tuan-phat-sinh') {
     return {
@@ -214,7 +295,12 @@ export function soKhoi(id: string, chon: Chon): SoKhoi {
     };
   }
   if (id === 'tuan-qh-thang') {
-    return { loai: 'cot', tieu: 'Nợ quá hạn theo tháng', d: thang.map((t) => ({ n: thangNhan(t.thang), v: t.quaHanTheoThang, hien: ty(t.quaHanTheoThang) })) };
+    return {
+      loai: 'cot',
+      tieu: 'Nợ quá hạn theo tháng',
+      phu: 'Dư quá hạn hiện tại, gom theo tháng của hóa đơn.',
+      d: thang.map((t) => ({ n: thangNhan(t.thang), v: t.quaHanTheoThang, hien: ty(t.quaHanTheoThang) })),
+    };
   }
   if (id === 'tuan-luy-ke') {
     return {
@@ -254,18 +340,13 @@ export function soKhoi(id: string, chon: Chon): SoKhoi {
   }
   if (id === 'tq-tuoi-pct') {
     return {
-      loai: 'cot',
+      loai: 'tron',
       tieu: 'Cơ cấu tuổi nợ',
-      phu: `Tỷ trọng tính trên tổng dư nợ ${ty(tong.duNo)}. Đơn vị cột: tỷ đồng.`,
       d: BUCKET_KEYS.map((k) => {
         const v = tong.aging[k];
         const p = tong.duNo > 0 ? v / tong.duNo : 0;
-        return {
-          n: BUCKET_LABEL[k],
-          v,
-          hien: `${ty(v)} (${pct(p)})`,
-        };
-      }),
+        return { n: BUCKET_LABEL[k], v: Math.abs(v), hien: `${ty(v)} (${pct(p)})` };
+      }).filter((d) => d.v !== 0),
     };
   }
   if (id === 'tq-canh-bao') {
@@ -362,7 +443,7 @@ export function soKhoi(id: string, chon: Chon): SoKhoi {
       ],
     };
   }
-  if (id === 'th-cot') return { loai: 'cot', tieu: 'Quá hạn theo nhóm tuổi nợ', phu: 'Tiền đã thu không tách theo từng nhóm vì sổ không có cột đó.', d: cotTuoi(tong.aging) };
+  if (id === 'th-cot') return { loai: 'tron', tieu: 'Quá hạn theo nhóm tuổi nợ', d: tronTuoi(tong.aging) };
   if (id === 'th-bang') {
     return {
       loai: 'bang',
@@ -404,7 +485,7 @@ export function soKhoi(id: string, chon: Chon): SoKhoi {
       d: ma.thanhPhan.map((p) => ({ n: p.ten || p.ma, v: p.diem ?? 0, hien: p.diem == null ? '—' : so1(p.diem) })),
     };
   }
-  if (ma && id === 'hs-tuoi') return { loai: 'cot', tieu: 'Tuổi nợ của khách', d: cotTuoi(ma.aging) };
+  if (ma && id === 'hs-tuoi') return { loai: 'tron', tieu: 'Tuổi nợ của khách', d: tronTuoi(ma.aging) };
   if (ma && id === 'hs-qh') {
     const cs = chuoiThang(ma);
     return { loai: 'cot', tieu: 'Nợ quá hạn theo tháng', d: cs.map((t) => ({ n: thangNhan(t.thang), v: t.quaHanTheoThang, hien: ty(t.quaHanTheoThang) })) };

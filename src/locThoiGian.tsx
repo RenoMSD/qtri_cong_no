@@ -388,17 +388,17 @@ export function BoLocThoiGianBar({
   // Variant dành cho mobile hẹp
   if (compact) {
     return (
-      <div className="flex flex-col gap-1.5 p-2 bg-slate-50 border-b border-slate-200/90 text-xs">
+      <div className="flex flex-col gap-1.5 p-2 bg-slate-50 border-b border-[#dfe6ec] text-xs">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-            <CalendarRange className="h-3.5 w-3.5 text-[#0073E6]" />
+          <div className="flex items-center gap-1.5 text-[12px] text-[#384956]">
+            <CalendarRange className="h-3.5 w-3.5 text-[#1769aa]" />
             <span>Kỳ xem báo cáo</span>
           </div>
           {khoang.laLoc && (
             <button
               type="button"
               onClick={resetLoc}
-              className="text-[10.5px] text-[#0073E6] hover:underline flex items-center gap-1"
+              className="text-[10.5px] text-[#1769aa] hover:underline flex items-center gap-1"
             >
               <RotateCcw className="h-3 w-3" />
               <span>Đặt lại</span>
@@ -409,9 +409,9 @@ export function BoLocThoiGianBar({
         <div className="grid grid-cols-3 gap-1 bg-slate-200/70 p-0.5 rounded-lg text-center">
           <button
             type="button"
-            className={`py-1 rounded-md font-medium text-[11px] transition ${
+            className={`py-1 rounded-md text-[11px] transition ${
               locThoiGian.kieu === 'tat_ca'
-                ? 'bg-white text-[#0073E6] font-semibold shadow-xs'
+                ? 'bg-white text-[#1769aa] shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
             onClick={() => setLocThoiGian({ ...locThoiGian, kieu: 'tat_ca' })}
@@ -420,9 +420,9 @@ export function BoLocThoiGianBar({
           </button>
           <button
             type="button"
-            className={`py-1 rounded-md font-medium text-[11px] transition ${
+            className={`py-1 rounded-md text-[11px] transition ${
               locThoiGian.kieu === 'thang'
-                ? 'bg-white text-[#0073E6] font-semibold shadow-xs'
+                ? 'bg-white text-[#1769aa] shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
             onClick={() => {
@@ -433,9 +433,9 @@ export function BoLocThoiGianBar({
           </button>
           <button
             type="button"
-            className={`py-1 rounded-md font-medium text-[11px] transition ${
+            className={`py-1 rounded-md text-[11px] transition ${
               locThoiGian.kieu === 'quy'
-                ? 'bg-white text-[#0073E6] font-semibold shadow-xs'
+                ? 'bg-white text-[#1769aa] shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
             onClick={() => {
@@ -449,7 +449,7 @@ export function BoLocThoiGianBar({
         {locThoiGian.kieu === 'thang' && (
           <div className="flex items-center gap-1.5 mt-0.5">
             <select
-              className="flex-1 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-xs focus:border-[#0073E6] focus:outline-hidden"
+              className="flex-1 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-xs focus:border-[#1769aa] focus:outline-hidden"
               value={locThoiGian.thang}
               onChange={(e) => setLocThoiGian({ ...locThoiGian, thang: e.target.value })}
             >
@@ -466,7 +466,7 @@ export function BoLocThoiGianBar({
         {locThoiGian.kieu === 'quy' && (
           <div className="flex items-center gap-1.5 mt-0.5">
             <select
-              className="flex-1 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-xs focus:border-[#0073E6] focus:outline-hidden"
+              className="flex-1 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-xs focus:border-[#1769aa] focus:outline-hidden"
               value={locThoiGian.quy}
               onChange={(e) => setLocThoiGian({ ...locThoiGian, quy: e.target.value })}
             >
@@ -479,7 +479,7 @@ export function BoLocThoiGianBar({
             </select>
             {danhSachNam.length > 1 && (
               <select
-                className="w-20 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-xs focus:border-[#0073E6] focus:outline-hidden"
+                className="w-20 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-xs focus:border-[#1769aa] focus:outline-hidden"
                 value={locThoiGian.nam}
                 onChange={(e) => setLocThoiGian({ ...locThoiGian, nam: e.target.value })}
               >
@@ -509,9 +509,9 @@ export function BoLocThoiGianBar({
       >
         <div className="flex items-center gap-1 px-2 py-1 text-slate-500">
           <CalendarRange
-            className={`h-3.5 w-3.5 ${khoang.laLoc ? 'text-[#0073E6]' : 'text-slate-400'}`}
+            className={`h-3.5 w-3.5 ${khoang.laLoc ? 'text-[#1769aa]' : 'text-slate-400'}`}
           />
-          <span className="hidden xl:inline text-[11px] font-medium text-slate-600">
+          <span className="hidden xl:inline text-[11px] text-slate-600">
             Kỳ xem:
           </span>
         </div>
@@ -520,9 +520,9 @@ export function BoLocThoiGianBar({
         <div className="flex items-center gap-0.5">
           <button
             type="button"
-            className={`cursor-pointer px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+            className={`cursor-pointer px-2.5 py-1 rounded-md text-[12px] transition ${
               locThoiGian.kieu === 'tat_ca'
-                ? 'bg-white text-[#0073E6] shadow-xs'
+                ? 'bg-white text-[#1769aa] shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
             onClick={() => setLocThoiGian({ ...locThoiGian, kieu: 'tat_ca' })}
@@ -532,9 +532,9 @@ export function BoLocThoiGianBar({
           </button>
           <button
             type="button"
-            className={`cursor-pointer px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+            className={`cursor-pointer px-2.5 py-1 rounded-md text-[12px] transition ${
               locThoiGian.kieu === 'thang'
-                ? 'bg-white text-[#0073E6] shadow-xs'
+                ? 'bg-white text-[#1769aa] shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
             onClick={() => {
@@ -546,9 +546,9 @@ export function BoLocThoiGianBar({
           </button>
           <button
             type="button"
-            className={`cursor-pointer px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+            className={`cursor-pointer px-2.5 py-1 rounded-md text-[12px] transition ${
               locThoiGian.kieu === 'quy'
-                ? 'bg-white text-[#0073E6] shadow-xs'
+                ? 'bg-white text-[#1769aa] shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
             onClick={() => {
@@ -564,7 +564,7 @@ export function BoLocThoiGianBar({
         {locThoiGian.kieu === 'thang' && (
           <div className="flex items-center pl-1 border-l border-slate-200 ml-1">
             <select
-              className="cursor-pointer rounded-md bg-white border border-slate-200/80 px-2 py-0.5 text-xs font-medium text-slate-800 shadow-2xs hover:border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-[#0073E6]"
+              className="cursor-pointer rounded-md bg-white border border-slate-200/80 px-2 py-0.5 text-xs text-slate-800 shadow-2xs hover:border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-[#1769aa]"
               value={locThoiGian.thang}
               onChange={(e) =>
                 setLocThoiGian({ ...locThoiGian, thang: e.target.value })
@@ -584,7 +584,7 @@ export function BoLocThoiGianBar({
         {locThoiGian.kieu === 'quy' && (
           <div className="flex items-center pl-1 border-l border-slate-200 ml-1 gap-1">
             <select
-              className="cursor-pointer rounded-md bg-white border border-slate-200/80 px-2 py-0.5 text-xs font-medium text-slate-800 shadow-2xs hover:border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-[#0073E6]"
+              className="cursor-pointer rounded-md bg-white border border-slate-200/80 px-2 py-0.5 text-xs text-slate-800 shadow-2xs hover:border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-[#1769aa]"
               value={locThoiGian.quy}
               onChange={(e) =>
                 setLocThoiGian({ ...locThoiGian, quy: e.target.value })
@@ -600,7 +600,7 @@ export function BoLocThoiGianBar({
 
             {danhSachNam.length > 1 && (
               <select
-                className="cursor-pointer rounded-md bg-white border border-slate-200/80 px-1.5 py-0.5 text-xs font-medium text-slate-700 shadow-2xs focus:outline-hidden"
+                className="cursor-pointer rounded-md bg-white border border-slate-200/80 px-1.5 py-0.5 text-xs text-slate-700 shadow-2xs focus:outline-hidden"
                 value={locThoiGian.nam}
                 onChange={(e) =>
                   setLocThoiGian({ ...locThoiGian, nam: e.target.value })
@@ -620,8 +620,8 @@ export function BoLocThoiGianBar({
       {/* Badge hiển thị trạng thái lọc & nút xóa bộ lọc */}
       {khoang.laLoc && (
         <div className="flex items-center gap-1 rounded-lg bg-sky-100/80 border border-sky-300 px-2 py-1 text-xs text-sky-900 shadow-2xs">
-          <span className="font-semibold text-[#0073E6]">Áp dụng:</span>
-          <span className="font-medium">{khoang.nhan}</span>
+          <span className="text-[#1769aa]">Áp dụng:</span>
+          <span>{khoang.nhan}</span>
           <button
             type="button"
             className="cursor-pointer ml-1 p-0.5 rounded-full hover:bg-sky-200 text-sky-700 transition"

@@ -60,9 +60,9 @@ export type ManId =
   | 'nap';
 
 const NHOM: { nhom: string; muc: { id: ManId; ten: string; icon: typeof LayoutDashboard }[] }[] = [
-  { nhom: 'TỔNG QUAN ĐIỀU HÀNH', muc: [{ id: 'tongquan', ten: 'Tổng quan Điều hành', icon: LayoutDashboard }] },
+  { nhom: 'Tổng quan điều hành', muc: [{ id: 'tongquan', ten: 'Tổng quan', icon: LayoutDashboard }] },
   {
-    nhom: 'CÔNG NỢ PHẢI THU (AR)',
+    nhom: 'Công nợ phải thu',
     muc: [
       { id: 'ar', ten: 'AR Dashboard', icon: BarChart3 },
       { id: 'khach', ten: 'Khách hàng và hồ sơ', icon: Users },
@@ -76,7 +76,7 @@ const NHOM: { nhom: string; muc: { id: ManId; ten: string; icon: typeof LayoutDa
     ],
   },
   {
-    nhom: 'CÔNG NỢ PHẢI TRẢ (AP)',
+    nhom: 'Công nợ phải trả',
     muc: [
       { id: 'ap', ten: 'Dashboard AP', icon: CreditCard },
       { id: 'ap_ncc', ten: 'Nhà cung cấp', icon: Users },
@@ -87,7 +87,7 @@ const NHOM: { nhom: string; muc: { id: ManId; ten: string; icon: typeof LayoutDa
     ],
   },
   {
-    nhom: 'QUẢN TRỊ DÒNG TIỀN',
+    nhom: 'Quản trị dòng tiền',
     muc: [
       { id: 'tien', ten: 'Dashboard dòng tiền', icon: Wallet },
       { id: 'vi_the', ten: 'Cash position', icon: FileSpreadsheet },
@@ -98,7 +98,7 @@ const NHOM: { nhom: string; muc: { id: ManId; ten: string; icon: typeof LayoutDa
     ],
   },
   {
-    nhom: 'KẾ HOẠCH MUA HÀNG',
+    nhom: 'Kế hoạch mua hàng',
     muc: [
       { id: 'nhu_cau', ten: 'Nhu cầu mua hàng', icon: ShoppingCart },
       { id: 'kh_mua', ten: 'Kế hoạch mua', icon: FileText },
@@ -109,7 +109,7 @@ const NHOM: { nhom: string; muc: { id: ManId; ten: string; icon: typeof LayoutDa
     ],
   },
   {
-    nhom: 'CẢNH BÁO',
+    nhom: 'Cảnh báo',
     muc: [
       { id: 'cb_ar', ten: 'Cảnh báo AR', icon: AlertTriangle },
       { id: 'cb_ap', ten: 'Cảnh báo AP', icon: AlertTriangle },
@@ -117,8 +117,8 @@ const NHOM: { nhom: string; muc: { id: ManId; ten: string; icon: typeof LayoutDa
       { id: 'cb_mua', ten: 'Cảnh báo mua hàng', icon: AlertTriangle },
     ],
   },
-  { nhom: 'BÁO CÁO', muc: [{ id: 'baocao', ten: 'Báo cáo', icon: Printer }] },
-  { nhom: 'QUẢN TRỊ DỮ LIỆU', muc: [{ id: 'nap', ten: 'Nạp dữ liệu', icon: UploadCloud }] },
+  { nhom: 'Báo cáo', muc: [{ id: 'baocao', ten: 'Báo cáo', icon: Printer }] },
+  { nhom: 'Quản trị dữ liệu', muc: [{ id: 'nap', ten: 'Nạp dữ liệu', icon: UploadCloud }] },
 ];
 
 const TRONG = new Set<ManId>([
@@ -147,13 +147,7 @@ export function ThanhBen({ man, chon }: { man: ManId; chon: (id: ManId) => void 
       return false;
     }
   });
-  const [mo, setMo] = useState<Record<string, boolean>>({
-    'TỔNG QUAN ĐIỀU HÀNH': true,
-    'CÔNG NỢ PHẢI THU (AR)': true,
-    'CẢNH BÁO': true,
-    'BÁO CÁO': true,
-    'QUẢN TRỊ DỮ LIỆU': true,
-  });
+  const [mo, setMo] = useState<Record<string, boolean>>(() => Object.fromEntries(NHOM.map((n) => [n.nhom, true])));
 
   function toggleThuGon() {
     setThuGon((v) => {
@@ -167,35 +161,27 @@ export function ThanhBen({ man, chon }: { man: ManId; chon: (id: ManId) => void 
 
   return (
     <aside
-      className={`relative z-30 flex h-screen shrink-0 flex-col border-r border-slate-200 bg-white transition-[width] duration-200 select-none ${
-        thuGon ? 'w-16' : 'w-64'
+      className={`relative z-30 flex h-screen shrink-0 flex-col border-r border-[#dfe6ec] bg-[#fbfcfd] transition-[width] duration-300 select-none ${
+        thuGon ? 'w-[78px]' : 'w-[262px]'
       }`}
     >
-      <div
-        className={`flex h-12 items-center border-b border-slate-100 ${
-          thuGon ? 'justify-center px-1' : 'justify-between px-3.5'
-        }`}
-      >
+      <div className={`flex h-[72px] items-center gap-3 border-b border-[#e8edf2] ${thuGon ? 'justify-center px-2' : 'px-5'}`}>
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#1769aa] text-white">
+          <BarChart3 className="size-5" />
+        </div>
         {!thuGon && (
-          <div className="truncate text-sm font-bold text-[#0073E6]">
-            Tân Phú Cường
+          <div>
+            <div className="text-[16px] font-semibold tracking-[-0.02em] text-[#17212b]">Finance Hub</div>
+            <div className="text-[10px] uppercase tracking-[0.14em] text-[#8b98a7]">Debt Management</div>
           </div>
         )}
-        <button
-          type="button"
-          className="cursor-pointer rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-[#0073E6] transition"
-          onClick={toggleThuGon}
-          title={thuGon ? 'Mở rộng menu' : 'Thu gọn menu'}
-        >
-          {thuGon ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-        </button>
       </div>
 
-      <nav className={`flex-1 overflow-y-auto ${thuGon ? 'px-2 py-2 space-y-1' : 'px-2 py-2'}`}>
+      <nav className={`flex-1 overflow-y-auto ${thuGon ? 'space-y-1 px-2 py-3' : 'px-3 py-4'}`}>
         {NHOM.map((n) => {
           if (thuGon) {
             return (
-              <div key={n.nhom} className="py-1 border-b border-slate-100/70 last:border-none">
+              <div key={n.nhom} className="border-b border-[#e8edf2] py-1 last:border-none">
                 {n.muc.map((m) => {
                   const Icon = m.icon;
                   const bat = man === m.id;
@@ -205,13 +191,11 @@ export function ThanhBen({ man, chon }: { man: ManId; chon: (id: ManId) => void 
                       type="button"
                       title={m.ten}
                       onClick={() => chon(m.id)}
-                      className={`cursor-pointer mb-1 flex w-full items-center justify-center rounded-lg p-2 text-sm transition ${
-                        bat
-                          ? 'bg-[#0073E6] text-white shadow-xs'
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      className={`mb-1 flex h-10 w-full cursor-pointer items-center justify-center rounded-lg transition ${
+                        bat ? 'bg-[#e8f2fb] text-[#1769aa]' : 'text-[#697887] hover:bg-[#f0f4f7]'
                       }`}
                     >
-                      <Icon className="h-4 w-4 shrink-0" />
+                      <Icon className="size-4 shrink-0" />
                     </button>
                   );
                 })}
@@ -223,11 +207,11 @@ export function ThanhBen({ man, chon }: { man: ManId; chon: (id: ManId) => void 
             <div key={n.nhom} className="mb-2">
               <button
                 type="button"
-                className="cursor-pointer flex w-full items-center justify-between px-2 py-1 text-[11px] font-semibold tracking-wide text-slate-400 hover:text-slate-600"
+                className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-[12px] font-semibold tracking-[-0.01em] text-[#3d4f5f] hover:bg-[#f3f6f8]"
                 onClick={() => setMo((s) => ({ ...s, [n.nhom]: !s[n.nhom] }))}
               >
-                <span className="truncate">{n.nhom}</span>
-                <ChevronDown className={`h-3 w-3 shrink-0 transition-transform ${mo[n.nhom] ? '' : '-rotate-90'}`} />
+                <span className="min-w-0 flex-1 truncate">{n.nhom}</span>
+                <ChevronDown className={`size-3.5 shrink-0 transition-transform ${mo[n.nhom] ? '' : '-rotate-90'}`} />
               </button>
               {mo[n.nhom]
                 ? n.muc.map((m) => {
@@ -238,12 +222,12 @@ export function ThanhBen({ man, chon }: { man: ManId; chon: (id: ManId) => void 
                         key={m.id}
                         type="button"
                         onClick={() => chon(m.id)}
-                        className={`cursor-pointer mb-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition ${
-                          bat ? 'bg-[#0073E6] text-white shadow-xs font-medium' : 'text-slate-700 hover:bg-slate-50'
+                        className={`mb-0.5 flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-md px-3 text-left text-[13px] transition-colors ${
+                          bat ? 'bg-[#e8f2fb] text-[#1769aa]' : 'text-[#24323e] hover:bg-[#f0f4f7]'
                         }`}
                       >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        <span className="leading-tight truncate">{m.ten}</span>
+                        <Icon className="size-4 shrink-0" />
+                        <span className="truncate">{m.ten}</span>
                       </button>
                     );
                   })
@@ -252,17 +236,15 @@ export function ThanhBen({ man, chon }: { man: ManId; chon: (id: ManId) => void 
           );
         })}
       </nav>
-      <div className="border-t border-slate-100 p-2">
+      <div className="border-t border-[#e8edf2] p-3">
         <button
           type="button"
           onClick={toggleThuGon}
-          className={`flex w-full items-center gap-2 rounded-lg p-2 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition ${
-            thuGon ? 'justify-center' : 'justify-between'
-          }`}
+          className={`flex h-9 w-full items-center gap-3 rounded-lg px-3 text-[12px] text-[#697887] hover:bg-[#f0f4f7] ${thuGon ? 'justify-center' : ''}`}
           title={thuGon ? 'Mở rộng menu' : 'Thu gọn menu'}
         >
-          {!thuGon && <span>Thu gọn thanh điều hướng</span>}
-          {thuGon ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          {thuGon ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
+          {!thuGon && <span>Thu gọn</span>}
         </button>
       </div>
     </aside>
@@ -274,31 +256,31 @@ const HANG: Array<Hang | 'ALL'> = ['ALL', 'Tốt', 'Trung bình', 'Xấu', 'Rấ
 export function LocBar({ sales, loc, setLoc }: { sales: string[]; loc: Loc; setLoc: (l: Loc) => void }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <select className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm" value={loc.sale} onChange={(e) => setLoc({ ...loc, sale: e.target.value })}>
+      <select className="h-9 rounded-lg border border-[#dfe6ec] bg-white px-3 text-[12px] text-[#506170]" value={loc.sale} onChange={(e) => setLoc({ ...loc, sale: e.target.value })}>
         <option value="ALL">Mọi Sale</option>
         {sales.map((s) => (
           <option key={s} value={s}>{s || 'Chưa gán Sale'}</option>
         ))}
       </select>
-      <select className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm" value={loc.hang} onChange={(e) => setLoc({ ...loc, hang: e.target.value })}>
+      <select className="h-9 rounded-lg border border-[#dfe6ec] bg-white px-3 text-[12px] text-[#506170]" value={loc.hang} onChange={(e) => setLoc({ ...loc, hang: e.target.value })}>
         {HANG.map((h) => (
           <option key={h} value={h}>{h === 'ALL' ? 'Mọi hạng' : h}</option>
         ))}
       </select>
-      <input className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm" placeholder="Mã hoặc tên" value={loc.q} onChange={(e) => setLoc({ ...loc, q: e.target.value })} />
+      <input className="h-9 rounded-lg border border-[#dfe6ec] bg-white px-3 text-[12px] text-[#506170]" placeholder="Mã hoặc tên" value={loc.q} onChange={(e) => setLoc({ ...loc, q: e.target.value })} />
     </div>
   );
 }
 
 export function ChuaNap({ chu = 'Chưa nạp sổ' }: { chu?: string }) {
-  return <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-sm text-slate-500">{chu}</div>;
+  return <div className="rounded-xl border border-dashed border-[#dfe6ec] bg-white p-8 text-[13px] text-[#697887]">{chu}</div>;
 }
 
 export function ChuaSo({ ten }: { ten: string }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-      <h2 className="text-lg font-semibold">{ten}</h2>
-      <p className="mt-2 text-sm text-slate-500">Chưa có sổ nguồn</p>
+    <section className="rounded-xl border border-[#dfe6ec] bg-white p-8 shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+      <h2 className="text-[16px] font-semibold text-[#233543]">{ten}</h2>
+      <p className="mt-2 text-[12px] text-[#81909d]">Chưa có sổ nguồn</p>
     </section>
   );
 }

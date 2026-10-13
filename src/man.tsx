@@ -1,14 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type MouseEvent } from 'react';
 import {
   UploadCloud,
-  CreditCard,
-  AlertTriangle,
-  Clock,
-  ShieldAlert,
   ChevronRight,
   FileText,
-  PieChart as PieIcon,
-  BarChart3,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -16,11 +10,15 @@ import {
   Pie,
   Cell,
   Tooltip,
+  ComposedChart,
   BarChart,
   Bar,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
+  Legend,
+  LabelList,
 } from 'recharts';
 import {
   BUCKET_KEYS,
@@ -32,11 +30,12 @@ import {
 import { parseArrayBuffer } from './lib/parseWorkbook';
 import { ngay, pct, so1, soLinh, ty } from './format';
 import { ChuaSo, LocBar, tenMan, type ManId } from './khung';
-import { CHU_TEST, soBoTest } from './boTest';
+import { CHI_13, CHU_TEST, NGAY_TUAN, THU_13, TUAN_13, soBoTest } from './boTest';
 import { DanhSachKeHoachMua, Khoi } from './khoi';
 import type { BoLocThoiGian } from './locThoiGian';
 import { layKhoangThoiGian } from './locThoiGian';
-import { bonNhomCanhBao, soKhoi, tenKhach, type Chon, type Loc, type NhomCanhBaoId, type Tay } from './soLieu';
+import { bonNhomCanhBao, cauQuaHanTuan, chuoi8Tuan, namKhachChiem, soKhoi, tenKhach, type Chon, type CotKhach, type Loc, type NhomCanhBaoId, type Tay } from './soLieu';
+import { mienY, truc } from './khoi';
 
 const MAU_BUCKET: Record<BucketKey, string> = {
   chuaDenHan: '#0284c7', // Xanh da trời (an toàn)
@@ -54,9 +53,9 @@ const MAU_BUCKET: Record<BucketKey, string> = {
 
 function Tieu({ tieu, phu }: { tieu: string; phu?: string }) {
   return (
-    <div className="mb-3">
-      <h2 className="text-lg font-semibold">{tieu}</h2>
-      {phu ? <p className="text-sm text-slate-500">{phu}</p> : null}
+    <div className="mb-4">
+      <h2 className="text-[16px] font-semibold text-[#233543]">{tieu}</h2>
+      {phu ? <p className="mt-1 text-[12px] text-[#81909d]">{phu}</p> : null}
     </div>
   );
 }
@@ -88,7 +87,7 @@ export function ManAr({
         <Tieu tieu="AR Dashboard" phu={tab === 'tuan' ? tuan : `Chốt ${ngay(ky.meta.ngayChot)} · ${ky.nhanDiem}`} />
         <div className="flex gap-1 rounded-lg bg-slate-100 p-1 text-sm">
           {(['tuan', 'tc1', 'tc2'] as const).map((t) => (
-            <button key={t} type="button" className={`rounded-md px-3 py-1 ${tab === t ? 'bg-white font-medium text-[#0073E6]' : 'text-slate-600'}`} onClick={() => setTab(t)}>
+            <button key={t} type="button" className={`rounded-md px-3 py-1 ${tab === t ? 'bg-white text-[#1769aa]' : 'text-slate-600'}`} onClick={() => setTab(t)}>
               {t === 'tuan' ? 'Tuần' : t.toUpperCase()}
             </button>
           ))}
@@ -157,14 +156,14 @@ export function ManKhach({
       <Tieu tieu="Khách hàng" phu="Bấm mã để mở một hồ sơ. Khách thêm tay không cộng vào tổng dư nợ." />
       <LocBar sales={sales} loc={loc} setLoc={setLoc} />
       <Khoi so={soKhoi('tuan-bang', chonLoc)} onMa={moHoSo} />
-      <section className="rounded-xl border border-slate-200 bg-white p-4">
+      <section className="rounded-xl border border-[#dfe6ec] bg-white shadow-[0_1px_2px_rgba(20,40,60,0.03)] p-4">
         <h3 className="text-sm font-semibold">Thêm tay</h3>
         <div className="mt-2 flex flex-wrap gap-2">
           <input className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm" placeholder="Mã" value={maMoi} onChange={(e) => setMaMoi(e.target.value)} />
           <input className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm" placeholder="Tên" value={tenMoi} onChange={(e) => setTenMoi(e.target.value)} />
           <button
             type="button"
-            className="rounded-lg bg-[#0073E6] px-3 py-1.5 text-sm text-white"
+            className="rounded-lg bg-[#1769aa] px-3 py-1.5 text-sm text-white"
             onClick={() => {
               const maKH = maMoi.trim();
               if (!maKH) return;
@@ -206,13 +205,13 @@ export function ManHoSo({ chon, suaTay }: { chon: Chon; suaTay: (t: Tay) => void
         <Khoi so={soKhoi('hs-qh', chon)} />
         <Khoi so={soKhoi('hs-luyke', chon)} />
       </div>
-      <section className="rounded-xl border border-slate-200 bg-white p-4">
+      <section className="rounded-xl border border-[#dfe6ec] bg-white shadow-[0_1px_2px_rgba(20,40,60,0.03)] p-4">
         <h3 className="text-sm font-semibold">Nhật ký thu hồi</h3>
         <div className="mt-2 flex gap-2">
           <input className="flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-sm" value={dong} placeholder="Nội dung lần liên hệ" onChange={(e) => setDong(e.target.value)} />
           <button
             type="button"
-            className="rounded-lg bg-[#0073E6] px-3 py-1.5 text-sm text-white"
+            className="rounded-lg bg-[#1769aa] px-3 py-1.5 text-sm text-white"
             onClick={() => {
               const van = dong.trim();
               if (!van) return;
@@ -227,7 +226,7 @@ export function ManHoSo({ chon, suaTay }: { chon: Chon; suaTay: (t: Tay) => void
         <Khoi so={soKhoi('hs-nhat', { ...chon, tay })} />
       </section>
       <Khoi so={soKhoi('hs-hd', chon)} />
-      <section className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-2">
+      <section className="grid gap-3 rounded-xl border border-[#dfe6ec] bg-white shadow-[0_1px_2px_rgba(20,40,60,0.03)] p-4 md:grid-cols-2">
         <label className="text-sm">
           Tên ghi tay
           <input className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5" value={tay.ten[ma.maKH] ?? ''} placeholder={ma.tenKH || 'Chưa có tên trong sổ'} onChange={(e) => suaTay({ ...tay, ten: { ...tay.ten, [ma.maKH]: e.target.value } })} />
@@ -277,7 +276,7 @@ export function ManKeHoach({ chon, suaTay }: { chon: Chon; suaTay: (t: Tay) => v
   return (
     <div className="space-y-4">
       <Tieu tieu="Kế hoạch tuần và dự báo thu" phu="Cột doanh thu dự kiến để trống vì sổ không có công thức đó. Kế hoạch là chữ tự nhập." />
-      <div className="overflow-auto rounded-xl border border-slate-200 bg-white">
+      <div className="overflow-auto rounded-xl border border-[#dfe6ec] bg-white shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-xs text-slate-500">
             <tr>
@@ -338,7 +337,7 @@ export function ManCanhBao({
         <div className="flex flex-wrap gap-2 text-xs">
           <button
             type="button"
-            className={`cursor-pointer rounded-lg px-3 py-1.5 font-medium transition ${nhomXem === 'all' ? 'bg-[#0073E6] text-white' : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300'}`}
+            className={`cursor-pointer rounded-lg px-3 py-1.5 transition ${nhomXem === 'all' ? 'bg-[#1769aa] text-white' : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300'}`}
             onClick={() => setNhomXem('all')}
           >
             Tất cả 4 nhóm
@@ -354,12 +353,12 @@ export function ManCanhBao({
             <button
               key={n.id}
               type="button"
-              className={`cursor-pointer rounded-xl border p-4 text-left transition ${active ? 'border-[#0073E6] bg-blue-50/40 ring-2 ring-[#0073E6]/20' : 'border-slate-200 bg-white hover:border-[#0073E6]'}`}
+              className={`cursor-pointer rounded-xl border p-4 text-left transition ${active ? 'border-[#1769aa] bg-blue-50/40 ring-2 ring-[#1769aa]/20' : 'border-slate-200 bg-white hover:border-[#1769aa]'}`}
               onClick={() => setNhomXem(active ? 'all' : n.id)}
             >
-              <div className="text-sm font-semibold text-slate-800">{n.ten}</div>
-              <div className="mt-2 text-xs text-slate-500">{n.soKhach} khách</div>
-              <div className="so mt-1 text-base font-semibold text-[#0073E6]">
+              <div className="text-[13px] text-[#384956]">{n.ten}</div>
+              <div className="mt-2 text-[12px] text-[#81909d]">{n.soKhach} khách</div>
+              <div className="so mt-1 text-[15px] font-normal text-[#304451]">
                 {n.id === 'vuot-hm' ? `Vượt ${ty(n.tongTien)}` : ty(n.tongTien)}
               </div>
             </button>
@@ -370,7 +369,7 @@ export function ManCanhBao({
       {/* Danh sách từng nhóm */}
       <div className="space-y-6">
         {hienThiNhom.map((n) => (
-          <section key={n.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <section key={n.id} className="rounded-xl border border-[#dfe6ec] bg-white shadow-[0_1px_2px_rgba(20,40,60,0.03)] p-4 shadow-sm">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
               <h3 className="text-base font-semibold text-slate-800">
                 {n.ten} <span className="ml-1 text-sm font-normal text-slate-500">({n.soKhach} khách · {n.id === 'vuot-hm' ? 'Tổng vượt' : 'Tổng tiền'} {ty(n.tongTien)})</span>
@@ -381,7 +380,7 @@ export function ManCanhBao({
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-500">
+                  <thead className="text-[#7b8996]">
                     <tr>
                       <th className="px-3 py-2">Mã KH</th>
                       <th className="px-3 py-2">Tên khách</th>
@@ -394,22 +393,18 @@ export function ManCanhBao({
                   </thead>
                   <tbody>
                     {n.danhSach.map((k) => (
-                      <tr key={`${n.id}-${k.maKH}`} className="border-t border-slate-100 hover:bg-slate-50/50">
-                        <td className="px-3 py-2 font-medium">
-                          <button
-                            type="button"
-                            className="cursor-pointer font-semibold text-[#0073E6] hover:underline"
-                            onClick={() => moHoSo(k.maKH)}
-                          >
+                      <tr key={`${n.id}-${k.maKH}`} className="border-t border-[#edf0f2]">
+                        <td className="px-3 py-2">
+                          <button type="button" className="cursor-pointer text-[#1769aa] hover:underline" onClick={() => moHoSo(k.maKH)}>
                             {k.maKH}
                           </button>
                         </td>
                         <td className="px-3 py-2">{k.tenKH}</td>
-                        <td className="px-3 py-2 text-slate-600">{k.sale}</td>
-                        <td className="so px-3 py-2 font-semibold text-slate-900">{ty(k.tien)}</td>
+                        <td className="px-3 py-2 text-[#697887]">{k.sale}</td>
+                        <td className="so px-3 py-2 text-[#304451]">{ty(k.tien)}</td>
                         <td className="px-3 py-2">{k.hang}</td>
                         <td className="so px-3 py-2">{k.diem != null ? so1(k.diem) : '—'}</td>
-                        <td className="px-3 py-2 text-slate-600">{k.ly}</td>
+                        <td className="px-3 py-2 text-[#697887]">{k.ly}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -419,6 +414,82 @@ export function ManCanhBao({
           </section>
         ))}
       </div>
+    </div>
+  );
+}
+
+function soToa(v: string | number | undefined): number | undefined {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string' && v !== '' && Number.isFinite(Number(v))) return Number(v);
+  return undefined;
+}
+
+function NhanTy({ x, y, width, height, value }: { x?: string | number; y?: string | number; width?: string | number; height?: string | number; value?: unknown }) {
+  const n = typeof value === 'number' ? value : Number(value);
+  const xx = soToa(x);
+  const yy = soToa(y) ?? 0;
+  const ww = soToa(width) ?? 0;
+  const hh = soToa(height) ?? 0;
+  if (!Number.isFinite(n) || n === 0 || xx == null) return <g />;
+  const t = new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(n / 1e9);
+  const trongCot = hh > 22;
+  return (
+    <text x={xx + ww / 2} y={trongCot ? yy + 13 : Math.max(11, yy - 6)} textAnchor="middle" fontSize={10} fill={trongCot ? '#ffffff' : '#506170'}>
+      {t}
+    </text>
+  );
+}
+
+function CotKhachXep(props: { x?: number; y?: number; width?: number; height?: number; payload?: CotKhach }) {
+  const x = props.x ?? 0;
+  const y = props.y ?? 0;
+  const width = props.width ?? 0;
+  const height = props.height ?? 0;
+  const row = props.payload;
+  const bam = (props as { onClick?: (e: MouseEvent<SVGGElement>) => void }).onClick;
+  if (!row || width <= 0 || height <= 0) return <g />;
+  const damW = row.duNo > 0 ? (width * row.dam) / row.duNo : 0;
+  return (
+    <g onClick={bam} style={{ cursor: 'pointer' }}>
+      <rect x={x} y={y} width={damW} height={height} fill="#1769aa" />
+      <rect x={x + damW} y={y} width={Math.max(0, width - damW)} height={height} fill="#c5dcef" />
+      <text x={x + width + 6} y={y + height / 2} dominantBaseline="middle" fontSize={11} fill="#304451">
+        {ty(row.duNo)}
+      </text>
+    </g>
+  );
+}
+
+function TipTuan({ active, payload, label }: { active?: boolean; payload?: Array<{ dataKey?: string | number; value?: number }>; label?: string }) {
+  if (!active || !payload?.length) return null;
+  const qh = payload.find((p) => p.dataKey === 'quaHan')?.value ?? 0;
+  const thu = payload.find((p) => p.dataKey === 'tienThu')?.value ?? 0;
+  return (
+    <div className="rounded-lg border border-[#dfe6ec] bg-white px-3 py-2 text-xs shadow">
+      <div className="mb-1 text-[#384956]">{label}</div>
+      <div className="so text-[#1769aa]">Quá hạn: {ty(qh)}</div>
+      <div className="so text-[#27875b]">Tiền thu: {ty(thu)}</div>
+    </div>
+  );
+}
+
+function cauNetThap(): string {
+  let i = 0;
+  for (let k = 1; k < THU_13.length; k += 1) {
+    if (THU_13[k] - CHI_13[k] < THU_13[i] - CHI_13[i]) i = k;
+  }
+  return `Tuần Net thấp nhất là ${TUAN_13[i]} ${NGAY_TUAN[i]}: ${ty((THU_13[i] - CHI_13[i]) * 1e9)}.`;
+}
+
+function TipKhach({ active, payload }: { active?: boolean; payload?: Array<{ payload?: CotKhach }> }) {
+  const row = payload?.[0]?.payload;
+  if (!active || !row) return null;
+  return (
+    <div className="rounded-lg border border-[#dfe6ec] bg-white px-3 py-2 text-xs shadow">
+      <div className="text-[#384956]">{row.ten}</div>
+      <div className="mt-0.5 text-[#728290]">Sale: {row.sale}</div>
+      <div className="so mt-1 text-[#304451]">Dư nợ: {ty(row.duNo)}</div>
+      <div className="so text-[#1769aa]">Quá hạn: {ty(row.quaHan)}</div>
     </div>
   );
 }
@@ -436,15 +507,10 @@ export function ManTong({
   onMa?: (ma: string) => void;
   onMoTc1?: () => void;
 }) {
-  const [kieuBieuDo, setKieuBieuDo] = useState<'tron' | 'cot'>('tron');
-  const [cheDoXemCot, setCheDoXemCot] = useState<'co_so' | 'tat_ca'>('co_so');
-
   const khoang = boLoc ? layKhoangThoiGian(boLoc, chon?.ky.meta) : null;
-
   const tong = chon?.tong;
   const nhomCanhBao = chon ? bonNhomCanhBao(chon.list, chon.tay) : [];
   const topKhach = chon ? topRuiRo(chon.list, 10) : [];
-
   const duLieuTuoiDuong = tong
     ? BUCKET_KEYS.filter((k) => tong.aging[k] > 0).map((k) => ({
         k,
@@ -452,330 +518,136 @@ export function ManTong({
         v: tong.aging[k],
       }))
     : [];
-
-  const duLieuTuoiTatCa = tong
-    ? BUCKET_KEYS.map((k) => ({
-        k,
-        n: BUCKET_LABEL[k],
-        v: tong.aging[k] || 0,
-      }))
-    : [];
+  const tren180 = tong ? tong.aging.d181_365 + tong.aging.d365 : 0;
+  const tuan8 = chon ? chuoi8Tuan(chon.list, chon.ky.meta.ngayChot, chon.ky.meta.tuanNhan) : [];
+  const cauTuan = cauQuaHanTuan(tuan8);
+  const namKhach = chon ? namKhachChiem(chon.list, chon.tay) : [];
 
   return (
-    <div className="space-y-5 max-w-[1600px] mx-auto">
-      {/* 1. Header: Tiêu đề Tổng quan điều hành & Tín dụng + Nút Báo cáo BGĐ */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
-        <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900">Tổng quan Điều hành & Tín dụng</h2>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-0.5">
-            <span>
-              Bức tranh tổng thể về tình hình công nợ, tín dụng và rủi ro danh mục khách hàng · Chốt {chon ? ngay(chon.ky.meta.ngayChot) : '—'}
-            </span>
-            {khoang?.laLoc && (
-              <span className="rounded-full bg-sky-100 px-2 py-0.5 font-semibold text-[#0073E6] border border-sky-200">
-                Áp dụng kỳ: {khoang.nhan}
-              </span>
-            )}
-          </div>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 text-[12px] text-[#8593a1]">
+          <span>Công nợ, tín dụng và rủi ro danh mục</span>
+          {khoang?.laLoc && (
+            <span className="rounded-md bg-[#e8f2fb] px-2 py-1 text-[11px] text-[#1769aa]">Kỳ: {khoang.nhan}</span>
+          )}
+          {chon ? <span className="text-[#81909d]">Nguồn điểm: {chon.ky.nhanDiem}</span> : null}
         </div>
-        <div className="flex items-center gap-3">
-          {chon ? (
-            <span className="hidden sm:inline-block rounded-lg bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
-              Nguồn điểm: <span className="font-medium text-slate-800">{chon.ky.nhanDiem}</span>
-            </span>
-          ) : null}
-          <button
-            type="button"
-            disabled={!chon || !onMoTc1}
-            className="cursor-pointer rounded-lg bg-[#0073E6] px-3.5 py-1.5 text-xs sm:text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 shadow-xs flex items-center gap-1.5"
-            onClick={onMoTc1}
-          >
-            <FileText className="h-4 w-4" />
-            Báo cáo BGĐ
-          </button>
-        </div>
+        <button
+          type="button"
+          disabled={!chon || !onMoTc1}
+          className="flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[#1769aa] px-3 text-[12px] text-white hover:bg-[#125b92] disabled:cursor-not-allowed disabled:opacity-40"
+          onClick={onMoTc1}
+        >
+          <FileText className="size-3.5" />
+          Báo cáo BGĐ
+        </button>
       </div>
 
       {chon && tong ? (
         <>
-          {/* 2. Bốn ô KPI: Dư nợ, Quá hạn kèm %, DSO kỳ, Nợ xấu kèm số khách */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
-            {/* Card 1: Tổng dư nợ */}
-            <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Tổng dư nợ phải thu</span>
-                <div className="h-9 w-9 rounded-lg bg-blue-50 text-[#0073E6] flex items-center justify-center">
-                  <CreditCard className="h-5 w-5" />
-                </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-xl border border-[#dfe6ec] bg-white p-4 shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+              <div className="text-[12px] text-[#728290]">Tổng phải thu</div>
+              <div className="mt-3 flex items-end gap-1">
+                <span className="so text-[26px] font-normal tracking-[-0.04em] text-[#1f2d39]">{ty(tong.duNo)}</span>
               </div>
-              <div className="mt-3">
-                <div className="so text-2xl font-bold tracking-tight text-slate-900">{ty(tong.duNo)}</div>
-                <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
-                  <span className="text-emerald-600 font-medium">Trong hạn:</span>
-                  <span className="so">{ty(tong.trongHan)} ({pct(tong.duNo > 0 ? tong.trongHan / tong.duNo : 0)})</span>
-                </div>
+              <div className="mt-2 inline-flex rounded-md bg-[#e8f2fb] px-2 py-1 text-[11px] text-[#1769aa]">
+                Trong hạn {ty(tong.trongHan)} · {pct(tong.duNo > 0 ? tong.trongHan / tong.duNo : 0)}
               </div>
             </div>
-
-            {/* Card 2: Công nợ quá hạn */}
-            <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Công nợ quá hạn</span>
-                <div className="h-9 w-9 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-                  <AlertTriangle className="h-5 w-5" />
-                </div>
+            <div className="rounded-xl border border-[#dfe6ec] bg-white p-4 shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+              <div className="text-[12px] text-[#728290]">Nợ quá hạn</div>
+              <div className="mt-3 flex items-end gap-1">
+                <span className="so text-[26px] font-normal tracking-[-0.04em] text-[#1f2d39]">{ty(tong.quaHan)}</span>
               </div>
-              <div className="mt-3">
-                <div className="so text-2xl font-bold tracking-tight text-rose-600">{ty(tong.quaHan)}</div>
-                <div className="mt-1 flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Tỷ lệ quá hạn:</span>
-                  <span className="rounded bg-rose-50 px-2 py-0.5 font-semibold text-rose-700">
-                    {pct(tong.duNo > 0 ? tong.quaHan / tong.duNo : 0)}
-                  </span>
-                </div>
+              <div className="mt-2 inline-flex rounded-md bg-[#fff0ed] px-2 py-1 text-[11px] text-[#c7634d]">
+                {pct(tong.duNo > 0 ? tong.quaHan / tong.duNo : 0)} tổng dư nợ
               </div>
             </div>
-
-            {/* Card 3: DSO kỳ */}
-            <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">DSO kỳ đánh giá</span>
-                <div className="h-9 w-9 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
-                  <Clock className="h-5 w-5" />
-                </div>
+            <div className="rounded-xl border border-[#dfe6ec] bg-white p-4 shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+              <div className="text-[12px] text-[#728290]">DSO</div>
+              <div className="mt-3 flex items-end gap-1">
+                <span className="so text-[26px] font-normal tracking-[-0.04em] text-[#1f2d39]">{tong.dsoKy != null ? so1(tong.dsoKy) : '—'}</span>
+                <span className="mb-1 text-[11px] text-[#85929e]">ngày</span>
               </div>
-              <div className="mt-3">
-                <div className="so text-2xl font-bold tracking-tight text-slate-900">
-                  {tong.dsoKy != null ? `${so1(tong.dsoKy)} ngày` : '—'}
-                </div>
-                <div className="mt-1 text-xs text-slate-500">Thời gian thu tiền bình quân kỳ</div>
-                {khoang?.laLoc && (
-                  <div className="mt-1.5 text-[11px] text-amber-700 italic leading-snug">
-                    Số cả kỳ đã nạp, sheet không có ngày theo tháng.
-                  </div>
-                )}
-              </div>
+              <div className="mt-2 inline-flex rounded-md bg-[#eaf7f0] px-2 py-1 text-[11px] text-[#27875b]">Thời gian thu tiền bình quân kỳ</div>
+              {khoang?.laLoc ? <p className="mt-2 text-[11px] text-[#b87b20]">Số cả kỳ đã nạp, sheet không có ngày theo tháng.</p> : null}
             </div>
-
-            {/* Card 4: Nợ xấu */}
-            <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Nợ xấu (nợ khó đòi)</span>
-                <div className="h-9 w-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <ShieldAlert className="h-5 w-5" />
-                </div>
+            <div className="rounded-xl border border-[#dfe6ec] bg-white p-4 shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+              <div className="text-[12px] text-[#728290]">Nợ xấu (nợ khó đòi)</div>
+              <div className="mt-3 flex items-end gap-1">
+                <span className="so text-[26px] font-normal tracking-[-0.04em] text-[#1f2d39]">{ty(tong.noKhoDoi)}</span>
               </div>
-              <div className="mt-3">
-                <div className="so text-2xl font-bold tracking-tight text-slate-900">{ty(tong.noKhoDoi)}</div>
-                <div className="mt-1 text-xs">
-                  <span className="rounded bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
-                    {tong.soKhachNoKhoDoi} khách hàng
-                  </span>
-                </div>
-                {khoang?.laLoc && (
-                  <div className="mt-1.5 text-[11px] text-amber-700 italic leading-snug">
-                    Số cả kỳ đã nạp, sheet không có ngày theo tháng.
-                  </div>
-                )}
-              </div>
+              <div className="mt-2 inline-flex rounded-md bg-[#fff6e5] px-2 py-1 text-[11px] text-[#b87b20]">{tong.soKhachNoKhoDoi} khách</div>
+              {khoang?.laLoc ? <p className="mt-2 text-[11px] text-[#b87b20]">Số cả kỳ đã nạp, sheet không có ngày theo tháng.</p> : null}
             </div>
           </div>
 
-          {/* 3 & 4. Mid Row: Cột trái Cơ cấu tuổi nợ (Donut/Bar) & Cột phải Bốn cảnh báo rủi ro */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-            {/* Cột trái: Cơ cấu tuổi nợ */}
-            <div className="lg:col-span-7 rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs flex flex-col justify-between">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-900">Cơ cấu tuổi nợ</h3>
-                  <p className="text-xs text-slate-500">Tỷ trọng các nhóm trên tổng dư nợ {ty(tong.duNo)}</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {kieuBieuDo === 'cot' && (
-                    <div className="flex items-center rounded-lg bg-slate-100 p-0.5 text-xs mr-1">
-                      <button
-                        type="button"
-                        className={`cursor-pointer px-2 py-0.5 rounded-md text-[11px] font-medium transition ${
-                          cheDoXemCot === 'co_so' ? 'bg-white text-[#0073E6] shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                        }`}
-                        onClick={() => setCheDoXemCot('co_so')}
-                      >
-                        Có dư nợ ({duLieuTuoiDuong.length})
-                      </button>
-                      <button
-                        type="button"
-                        className={`cursor-pointer px-2 py-0.5 rounded-md text-[11px] font-medium transition ${
-                          cheDoXemCot === 'tat_ca' ? 'bg-white text-[#0073E6] shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                        }`}
-                        onClick={() => setCheDoXemCot('tat_ca')}
-                      >
-                        Tất cả ({duLieuTuoiTatCa.length})
-                      </button>
-                    </div>
-                  )}
-                  <div className="flex items-center rounded-lg bg-slate-100 p-0.5 text-xs">
-                    <button
-                      type="button"
-                      className={`cursor-pointer px-2.5 py-1 rounded-md font-medium transition flex items-center gap-1 ${
-                        kieuBieuDo === 'tron' ? 'bg-white text-[#0073E6] shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                      onClick={() => setKieuBieuDo('tron')}
-                    >
-                      <PieIcon className="h-3.5 w-3.5" />
-                      Biểu đồ tròn
-                    </button>
-                    <button
-                      type="button"
-                      className={`cursor-pointer px-2.5 py-1 rounded-md font-medium transition flex items-center gap-1 ${
-                        kieuBieuDo === 'cot' ? 'bg-white text-[#0073E6] shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                      onClick={() => setKieuBieuDo('cot')}
-                    >
-                      <BarChart3 className="h-3.5 w-3.5" />
-                      Biểu đồ cột
-                    </button>
-                  </div>
+          <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-2 2xl:grid-cols-3">
+            <div className="flex min-w-0 flex-col rounded-xl border border-[#dfe6ec] bg-white p-5 shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+              <div>
+                <h3 className="text-[16px] font-semibold text-[#233543]">Cơ cấu tuổi nợ</h3>
+                <p className="mt-1 text-[12px] text-[#81909d]">Phân bổ dư nợ phải thu theo thời gian quá hạn · {ty(tong.duNo)}</p>
+              </div>
+              <div className="relative mx-auto mt-2 h-40 w-full max-w-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={duLieuTuoiDuong} dataKey="v" nameKey="n" innerRadius={46} outerRadius={68} paddingAngle={2} isAnimationActive={false}>
+                      {duLieuTuoiDuong.map((d) => (
+                        <Cell key={d.k} fill={MAU_BUCKET[d.k] || '#1769aa'} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (!active || !payload?.length) return null;
+                        const d = payload[0].payload as { n: string; v: number };
+                        const phanTram = tong.duNo > 0 ? (d.v / tong.duNo) * 100 : 0;
+                        return (
+                          <div className="rounded-lg border border-[#dfe6ec] bg-white p-2.5 text-xs shadow-md">
+                            <div className="text-[#384956]">{d.n}</div>
+                            <div className="so mt-1 text-[#1769aa]">{ty(d.v)} ({phanTram.toFixed(1)}%)</div>
+                          </div>
+                        );
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="so text-base text-[#1f2d39]">{ty(tong.duNo)}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-[#9aa5ae]">Tổng dư nợ</span>
                 </div>
               </div>
-
-              {kieuBieuDo === 'tron' ? (
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center pt-3 flex-1 min-h-[240px]">
-                  {/* Donut Chart with center label */}
-                  <div className="md:col-span-5 h-56 relative flex items-center justify-center">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={duLieuTuoiDuong}
-                          dataKey="v"
-                          nameKey="n"
-                          innerRadius={55}
-                          outerRadius={78}
-                          paddingAngle={2}
-                          isAnimationActive={false}
-                        >
-                          {duLieuTuoiDuong.map((d) => (
-                            <Cell key={d.k} fill={MAU_BUCKET[d.k] || '#0073E6'} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          content={({ active, payload }) => {
-                            if (!active || !payload?.length) return null;
-                            const d = payload[0].payload as { n: string; v: number; k: BucketKey };
-                            const phanTram = tong.duNo > 0 ? (d.v / tong.duNo) * 100 : 0;
-                            return (
-                              <div className="rounded-lg border border-slate-200 bg-white p-2.5 text-xs shadow-md">
-                                <div className="font-semibold text-slate-800">{d.n}</div>
-                                <div className="so mt-1 text-[#0073E6] font-bold">
-                                  {ty(d.v)} ({phanTram.toFixed(1)}%)
-                                </div>
-                              </div>
-                            );
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="so text-base font-bold text-slate-900">{ty(tong.duNo)}</span>
-                      <span className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Tổng dư nợ</span>
-                    </div>
-                  </div>
-
-                  {/* Legend breakdown table/list */}
-                  <div className="md:col-span-7 max-h-56 overflow-y-auto pr-1 space-y-1.5 text-xs">
-                    {duLieuTuoiDuong.map((d) => {
-                      const phanTram = tong.duNo > 0 ? (d.v / tong.duNo) * 100 : 0;
-                      return (
-                        <div key={d.k} className="flex items-center justify-between gap-2 py-1 border-b border-slate-50 last:border-none">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: MAU_BUCKET[d.k] || '#0073E6' }} />
-                            <span className="text-slate-700 truncate">{d.n}</span>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="so font-medium text-slate-500 w-12 text-right">{phanTram.toFixed(1)}%</span>
-                            <span className="so font-semibold text-slate-900 w-16 text-right">{ty(d.v)}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : (
-                (() => {
-                  const duLieuCot = cheDoXemCot === 'co_so' ? duLieuTuoiDuong : duLieuTuoiTatCa;
+              <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-[11px]">
+                {duLieuTuoiDuong.map((d) => {
+                  const phanTram = tong.duNo > 0 ? (d.v / tong.duNo) * 100 : 0;
                   return (
-                    <div className="w-full min-w-0 h-[280px] pt-3 flex flex-col justify-end">
-                      <ResponsiveContainer width="100%" height={260} minWidth={0}>
-                        <BarChart
-                          data={duLieuCot}
-                          margin={{ top: 24, right: 16, left: 4, bottom: cheDoXemCot === 'co_so' ? 26 : 48 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                          <XAxis
-                            dataKey="n"
-                            interval={0}
-                            angle={-25}
-                            textAnchor="end"
-                            height={cheDoXemCot === 'co_so' ? 44 : 58}
-                            tick={{ fontSize: 9.5, fill: '#475569' }}
-                            tickMargin={4}
-                          />
-                          <YAxis
-                            tickFormatter={(v) => (v === 0 ? '0' : (v / 1e9).toFixed(1))}
-                            tick={{ fontSize: 10, fill: '#64748b' }}
-                            width={50}
-                            unit=" tỷ"
-                            domain={[0, (dataMax: number) => Math.max(1e9, Math.ceil(dataMax * 1.25))]}
-                          />
-                          <Tooltip
-                            cursor={{ fill: 'rgba(0, 115, 230, 0.05)' }}
-                            content={({ active, payload }) => {
-                              if (!active || !payload?.length || !payload[0]?.payload) return null;
-                              const d = payload[0].payload as { n: string; v: number; k: BucketKey };
-                              if (!d || typeof d.v !== 'number') return null;
-                              const phanTram = tong.duNo > 0 ? (d.v / tong.duNo) * 100 : 0;
-                              return (
-                                <div className="rounded-lg border border-slate-200 bg-white p-2.5 text-xs shadow-md">
-                                  <div className="font-semibold text-slate-800">{d.n}</div>
-                                  <div className="so mt-0.5 text-[#0073E6] font-bold">
-                                    {ty(d.v)} ({phanTram.toFixed(1)}%)
-                                  </div>
-                                </div>
-                              );
-                            }}
-                          />
-                          <Bar dataKey="v" name="Số tiền" radius={[4, 4, 0, 0]} maxBarSize={48} isAnimationActive={false}>
-                            {duLieuCot.map((d) => (
-                              <Cell key={d.k} fill={MAU_BUCKET[d.k] || '#0073E6'} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                      {/* Chú thích màu sắc */}
-                      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-2 border-t border-slate-100 text-xs">
-                        {duLieuCot.map((d) => (
-                          <div key={d.k} className="flex items-center gap-1.5">
-                            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: MAU_BUCKET[d.k] || '#0073E6' }} />
-                            <span className="text-slate-700">{d.n}</span>
-                            <span className="text-slate-400 font-medium">({pct(tong.duNo > 0 ? d.v / tong.duNo : 0)})</span>
-                          </div>
-                        ))}
+                    <div key={d.k} className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: MAU_BUCKET[d.k] || '#1769aa' }} />
+                        <span className="truncate text-[#384956]">{d.n}</span>
                       </div>
+                      <div className="so pl-3.5 text-[#304451]">{phanTram.toFixed(1)}% · {ty(d.v)}</div>
                     </div>
                   );
-                })()
-              )}
+                })}
+              </div>
+              <p className="mt-3 border-t border-[#eef2f5] pt-3 text-[13px] text-[#506170]">
+                Nợ trên 180 ngày:{' '}
+                <span className="so text-[#c7634d]">{ty(tren180)}</span>
+                {' '}({pct(tong.duNo > 0 ? tren180 / tong.duNo : 0)}) — khoản có nguy cơ thu chậm nhất.
+              </p>
             </div>
 
-            {/* Cột phải: Bốn cảnh báo rủi ro */}
-            <div className="lg:col-span-5 rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs flex flex-col justify-between">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <div className="flex min-w-0 flex-col rounded-xl border border-[#dfe6ec] bg-white p-5 shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+              <div className="flex items-center justify-between pb-4">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900">Cảnh báo rủi ro & Hạn mức</h3>
-                  <p className="text-xs text-slate-500">Bấm thẻ để chuyển sang danh sách chi tiết</p>
+                  <h3 className="text-[16px] font-semibold text-[#233543]">Cảnh báo rủi ro và hạn mức</h3>
+                  <p className="mt-1 text-[12px] text-[#81909d]">Bấm thẻ để xem danh sách</p>
                 </div>
                 <button
                   type="button"
-                  className="cursor-pointer text-xs text-[#0073E6] font-medium hover:underline flex items-center gap-0.5"
+                  className="flex cursor-pointer items-center gap-0.5 text-[12px] text-[#1769aa]"
                   onClick={() => onMoCanhBao?.('vuot-hm')}
                 >
                   Xem tất cả <ChevronRight className="h-3 w-3" />
@@ -788,16 +660,16 @@ export function ManTong({
                     <button
                       key={n.id}
                       type="button"
-                      className="cursor-pointer rounded-lg border border-slate-200/80 bg-slate-50/70 p-3 text-left transition hover:border-[#0073E6] hover:bg-blue-50/25 flex flex-col justify-between"
+                      className="flex cursor-pointer flex-col justify-between rounded-lg border border-[#edf0f2] p-3 text-left transition hover:border-[#81b4d5]"
                       onClick={() => onMoCanhBao?.(n.id)}
                     >
                       <div className="flex items-center justify-between gap-1">
-                        <span className="text-xs font-semibold text-slate-800 truncate">{n.ten}</span>
+                        <span className="truncate text-[12px] text-[#384956]">{n.ten}</span>
                         <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                       </div>
                       <div className="mt-2.5">
-                        <div className="text-xs text-slate-500">{n.soKhach} khách hàng</div>
-                        <div className="so mt-0.5 text-sm font-bold text-[#0073E6]">
+                        <div className="text-[11px] text-[#8d99a3]">{n.soKhach} khách</div>
+                        <div className="so mt-1 text-[15px] font-normal text-[#304451]">
                           {n.id === 'vuot-hm' ? `Vượt ${ty(n.tongTien)}` : ty(n.tongTien)}
                         </div>
                       </div>
@@ -806,46 +678,75 @@ export function ManTong({
                 })}
               </div>
             </div>
-          </div>
 
-          {/* 4. Sắp xếp các biểu đồ phân tích chuyên sâu lên trước */}
-          <div className="space-y-3 pt-2">
-            <div className="border-b border-slate-100 pb-2">
-              <h3 className="text-base font-bold text-slate-900">Biểu đồ Phân tích Công nợ & Tín dụng</h3>
-              <p className="text-xs text-slate-500">Biến động phát sinh, thanh toán, quá hạn theo tháng và phân hạng khách hàng</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Khoi so={soKhoi('tuan-phat-sinh', chon)} />
-              <Khoi so={soKhoi('tuan-qh-thang', chon)} />
-              <Khoi so={soKhoi('tuan-luy-ke', chon)} />
-              <Khoi so={soKhoi('tq-hang', chon)} />
-            </div>
-          </div>
-
-          {/* 5. Dòng tiền và kế hoạch tham khảo */}
-          <div className="space-y-3 pt-2">
-            <div className="border-b border-slate-100 pb-2">
-              <h3 className="text-sm font-semibold text-slate-800">Dòng tiền & Kế hoạch tham khảo</h3>
-              <p className="text-xs text-slate-500">{CHU_TEST}</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Khoi so={soBoTest('bt-tien-tuan', boLoc)!} />
-              <Khoi so={soBoTest('bt-ap-tuoi', boLoc)!} />
-            </div>
-            <div className="mt-2">
-              <DanhSachKeHoachMua boLoc={boLoc} />
-            </div>
-          </div>
-
-          {/* 6. DƯỚI CÙNG HẾT: Bảng Top 10 khách hàng có rủi ro cao nhất */}
-          <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs mt-3">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5 mb-2">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900">Top 10 khách hàng có rủi ro cao nhất</h3>
-                <p className="text-xs text-slate-500">Xếp theo trọng số quá hạn lớn nhất kỳ · Bấm mã khách hàng để mở hồ sơ chi tiết</p>
+            <div className="min-w-0 rounded-xl border border-[#dfe6ec] bg-white p-5 shadow-[0_1px_2px_rgba(20,40,60,0.03)] xl:col-span-2 2xl:col-span-1">
+              <h3 className="text-[16px] font-semibold text-[#233543]">Năm khách đang chiếm nhiều tiền nhất</h3>
+              <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[12px] text-[#81909d]">Cột là dư nợ · phần đậm là quá hạn · bấm cột để mở hồ sơ</p>
+                <div className="flex items-center gap-3 text-[12px] text-[#506170]">
+                  <span className="inline-flex items-center gap-1.5"><span className="inline-block size-2 bg-[#1769aa]" />Quá hạn</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="inline-block size-2 bg-[#c5dcef]" />Chưa quá hạn</span>
+                </div>
               </div>
-              <span className="text-[11px] text-slate-400 hidden md:inline-block">
-                Trọng số = 0.5×(≤90d) + 0.8×(91–180d) + 1.0×(&gt;180d)
+              {namKhach.length === 0 ? (
+                <p className="mt-6 text-[13px] text-[#81909d]">Chưa có khách có dư nợ.</p>
+              ) : (
+                <div className="mt-3 h-72">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                    <BarChart layout="vertical" data={namKhach} margin={{ top: 4, right: 64, left: 4, bottom: 0 }}>
+                      <CartesianGrid horizontal={false} stroke="#e8edf2" />
+                      <XAxis type="number" tickFormatter={truc} tick={{ fontSize: 10, fill: '#506170' }} axisLine={{ stroke: '#dfe6ec' }} tickLine={false} domain={mienY(namKhach.map((d) => d.duNo))} />
+                      <YAxis
+                        type="category"
+                        dataKey="n"
+                        width={132}
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 11, fill: '#304451' }}
+                        tickFormatter={(v: string) => (v.length > 18 ? `${v.slice(0, 17)}…` : v)}
+                      />
+                      <Tooltip content={<TipKhach />} />
+                      <Bar dataKey="duNo" name="Dư nợ" barSize={16} shape={CotKhachXep} isAnimationActive={false} cursor="pointer" onClick={(row) => { const ma = (row.payload as CotKhach | undefined)?.ma; if (ma) onMa?.(ma); }} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-[#dfe6ec] bg-white p-5 shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+            <h3 className="text-[16px] font-semibold text-[#233543]">Quá hạn và tiền thu theo tuần</h3>
+              <p className="mt-1 text-[12px] text-[#81909d]">8 tuần tính đến ngày chốt · cột là dư quá hạn cuối tuần (trục trái), đường là tiền đã thu trong tuần (trục phải) · đơn vị tỷ đồng</p>
+              <div className="mt-3 h-72">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <ComposedChart data={tuan8} margin={{ top: 22, right: 4, left: 0, bottom: 0 }}>
+                    <CartesianGrid vertical={false} stroke="#e8edf2" />
+                    <XAxis dataKey="n" tick={{ fontSize: 11, fill: '#506170' }} axisLine={{ stroke: '#dfe6ec' }} tickLine={false} />
+                    <YAxis yAxisId="qh" tickFormatter={truc} tick={{ fontSize: 10, fill: '#506170' }} width={36} axisLine={false} tickLine={false} domain={mienY(tuan8.map((d) => d.quaHan))} />
+                    <YAxis yAxisId="thu" orientation="right" tickFormatter={truc} tick={{ fontSize: 10, fill: '#27875b' }} width={36} axisLine={false} tickLine={false} domain={mienY(tuan8.map((d) => d.tienThu))} />
+                    <Tooltip content={<TipTuan />} />
+                    <Legend verticalAlign="top" align="right" iconSize={8} wrapperStyle={{ fontSize: 12, color: '#506170', paddingBottom: 8 }} />
+                    <Bar yAxisId="qh" dataKey="quaHan" name="Quá hạn" fill="#1769aa" barSize={22} radius={[2, 2, 0, 0]} isAnimationActive={false}>
+                      <LabelList dataKey="quaHan" content={NhanTy} />
+                    </Bar>
+                    <Line yAxisId="thu" type="monotone" dataKey="tienThu" name="Tiền thu" stroke="#27875b" strokeWidth={2.5} dot={{ r: 3, fill: '#27875b', strokeWidth: 0 }} activeDot={{ r: 4 }} isAnimationActive={false} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+              <p className={`mt-3 border-t border-[#eef2f5] pt-3 text-[13px] ${cauTuan.huong === 'tang' ? 'text-[#c7634d]' : cauTuan.huong === 'giam' ? 'text-[#27875b]' : 'text-[#506170]'}`}>
+                {cauTuan.cau}
+              </p>
+            </div>
+
+          {/* Danh sách việc: ai thu, khoản nào */}
+          <div className="mt-3 rounded-xl border border-[#dfe6ec] bg-white p-5 shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+            <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h3 className="text-[16px] font-semibold text-[#233543]">Top 10 khách hàng có rủi ro cao nhất</h3>
+                <p className="mt-1 text-[12px] text-[#81909d]">Xếp theo trọng số quá hạn · bấm mã khách để mở hồ sơ</p>
+              </div>
+              <span className="hidden text-[11px] text-[#9aa5ae] md:inline-block">
+                Trọng số = 0,5×(≤90 ngày) + 0,8×(91–180 ngày) + 1,0×(&gt;180 ngày)
               </span>
             </div>
 
@@ -853,14 +754,14 @@ export function ManTong({
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50/80 text-slate-500">
                   <tr>
-                    <th className="px-3 py-2 w-10 text-center font-medium">STT</th>
-                    <th className="px-3 py-2 font-medium">Mã KH</th>
-                    <th className="px-3 py-2 font-medium">Tên khách hàng</th>
-                    <th className="px-3 py-2 font-medium">Sale</th>
-                    <th className="px-3 py-2 text-right font-medium">Quá hạn</th>
-                    <th className="px-3 py-2 text-right font-medium">Trọng số</th>
-                    <th className="px-3 py-2 text-center font-medium">Điểm rủi ro</th>
-                    <th className="px-3 py-2 text-center font-medium">Hạng</th>
+                    <th className="px-3 py-2 w-10 text-center">STT</th>
+                    <th className="px-3 py-2">Mã KH</th>
+                    <th className="px-3 py-2">Tên khách hàng</th>
+                    <th className="px-3 py-2">Sale</th>
+                    <th className="px-3 py-2 text-right">Quá hạn</th>
+                    <th className="px-3 py-2 text-right">Trọng số</th>
+                    <th className="px-3 py-2 text-center">Điểm rủi ro</th>
+                    <th className="px-3 py-2 text-center">Hạng</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -875,26 +776,26 @@ export function ManTong({
                             ? 'bg-blue-50 text-blue-700'
                             : diem >= 2
                               ? 'bg-amber-50 text-amber-700'
-                              : 'bg-rose-50 text-rose-700 font-bold';
+                              : 'bg-rose-50 text-rose-700 font-normal';
 
                     return (
                       <tr key={k.maKH} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="px-3 py-2.5 text-center text-slate-400 font-medium">{i + 1}</td>
-                        <td className="px-3 py-2.5 font-medium">
+                        <td className="px-3 py-2.5 text-center text-slate-400">{i + 1}</td>
+                        <td className="px-3 py-2.5">
                           <button
                             type="button"
-                            className="cursor-pointer font-semibold text-[#0073E6] hover:underline"
+                            className="cursor-pointer text-[#1769aa] hover:underline"
                             onClick={() => onMa?.(k.maKH)}
                           >
                             {k.maKH}
                           </button>
                         </td>
-                        <td className="px-3 py-2.5 font-medium text-slate-800">{tenKhach(k, chon.tay)}</td>
+                        <td className="px-3 py-2.5 text-slate-800">{tenKhach(k, chon.tay)}</td>
                         <td className="px-3 py-2.5 text-slate-500">{k.sale || '—'}</td>
-                        <td className="so px-3 py-2.5 text-right font-semibold text-rose-600">{ty(k.quaHan)}</td>
-                        <td className="so px-3 py-2.5 text-right font-semibold text-slate-900">{ty(k.trongSo)}</td>
+                        <td className="so px-3 py-2.5 text-right text-[#c7634d]">{ty(k.quaHan)}</td>
+                        <td className="so px-3 py-2.5 text-right text-[#304451]">{ty(k.trongSo)}</td>
                         <td className="px-3 py-2.5 text-center">
-                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${mauDiem}`}>
+                          <span className={`inline-block px-2 py-0.5 rounded text-[12px] ${mauDiem}`}>
                             {diem != null ? so1(diem) : '—'}
                           </span>
                         </td>
@@ -904,6 +805,41 @@ export function ManTong({
                   })}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <div className="border-b border-slate-100 pb-2">
+              <h3 className="text-[16px] font-semibold text-[#233543]">Theo tháng trong kỳ</h3>
+              <p className="mt-1 text-[12px] text-[#81909d]">Mỗi tháng nợ mới có lớn hơn tiền thu hay không, và dư nợ có tăng nhanh hơn doanh thu hay không</p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <Khoi so={soKhoi('tuan-phat-sinh', chon)} />
+              <Khoi so={soKhoi('tuan-luy-ke', chon)} />
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <div className="border-b border-slate-100 pb-2">
+              <h3 className="text-[16px] font-semibold text-[#233543]">Chất lượng sổ</h3>
+              <p className="mt-1 text-[12px] text-[#81909d]">Hạng khách hàng, và dư quá hạn hiện tại đang nằm ở hóa đơn tháng nào</p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <Khoi so={soKhoi('tq-hang', chon)} />
+              <Khoi so={soKhoi('tuan-qh-thang', chon)} />
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <div className="border-b border-slate-100 pb-2">
+              <h3 className="text-[16px] font-semibold text-[#233543]">Dòng tiền và kế hoạch tham khảo</h3>
+              <p className="mt-1 text-[12px] text-[#81909d]">{CHU_TEST}</p>
+            </div>
+            <Khoi so={soBoTest('bt-tien-tuan', boLoc)!} />
+            <p className="text-[13px] text-[#506170]">{cauNetThap()}</p>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <Khoi so={soBoTest('bt-ap-tuoi', boLoc)!} />
+              <DanhSachKeHoachMua boLoc={boLoc} />
             </div>
           </div>
         </>
@@ -961,12 +897,12 @@ export function ManNap({ onKy }: { onKy: (ky: KetQua, tep: ArrayBuffer) => void 
           setKeo(false);
           nhanFile(e.dataTransfer.files?.[0]);
         }}
-        className={`rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-colors ${keo ? 'border-[#0073E6] bg-blue-50' : 'border-slate-300 bg-white'}`}
+        className={`rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-colors ${keo ? 'border-[#1769aa] bg-blue-50' : 'border-slate-300 bg-white'}`}
       >
-        <UploadCloud className={`mx-auto h-12 w-12 ${keo ? 'text-[#0073E6]' : 'text-slate-400'}`} />
-        <p className="mt-3 text-base font-medium text-slate-800">Kéo thả file Excel vào đây</p>
+        <UploadCloud className={`mx-auto h-12 w-12 ${keo ? 'text-[#1769aa]' : 'text-slate-400'}`} />
+        <p className="mt-3 text-base text-slate-800">Kéo thả file Excel vào đây</p>
         <p className="mt-1 text-sm text-slate-500">hoặc chọn từ máy</p>
-        <label className="mt-4 inline-block cursor-pointer rounded-full bg-[#0073E6] px-5 py-2 text-sm font-medium text-white">
+        <label className="mt-4 inline-block cursor-pointer rounded-full bg-[#1769aa] px-5 py-2 text-sm text-white">
           Chọn file
           <input
             className="hidden"
@@ -979,12 +915,12 @@ export function ManNap({ onKy }: { onKy: (ky: KetQua, tep: ArrayBuffer) => void 
           />
         </label>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-sm">
-          <a className="text-[#0073E6] underline" href="/mau/Mau_Nap_CongNo.xlsx" download>
+          <a className="text-[#1769aa] underline" href="/mau/Mau_Nap_CongNo.xlsx" download>
             Tải file mẫu
           </a>
           <button
             type="button"
-            className="text-[#0073E6] underline"
+            className="text-[#1769aa] underline"
             onClick={async () => {
               const res = await fetch('/mau-test/CongNo_Demo_Test.xlsx');
               if (!res.ok) {
@@ -1001,7 +937,7 @@ export function ManNap({ onKy }: { onKy: (ky: KetQua, tep: ArrayBuffer) => void 
       {dang ? <p className="text-sm text-slate-500">Đang đọc…</p> : null}
       {loi ? <p className="text-sm text-red-700">{loi}</p> : null}
       {xem ? (
-        <section className="rounded-xl border border-slate-200 bg-white p-4">
+        <section className="rounded-xl border border-[#dfe6ec] bg-white shadow-[0_1px_2px_rgba(20,40,60,0.03)] p-4">
           <p className="text-sm">
             {xem.tenFile} · chốt {ngay(xem.meta.ngayChot)} · dư nợ {ty(xem.tong.duNo)} · {xem.nhanDiem}
           </p>
@@ -1031,7 +967,7 @@ export function ManNap({ onKy }: { onKy: (ky: KetQua, tep: ArrayBuffer) => void 
               </tbody>
             </table>
           </div>
-          <button type="button" disabled={!tep || xem.chanLuu || xem.loiDoc.length > 0} className="mt-4 rounded-lg bg-[#0073E6] px-3 py-2 text-sm text-white disabled:opacity-40" onClick={() => tep && onKy(xem, tep)}>
+          <button type="button" disabled={!tep || xem.chanLuu || xem.loiDoc.length > 0} className="mt-4 rounded-lg bg-[#1769aa] px-3 py-2 text-sm text-white disabled:opacity-40" onClick={() => tep && onKy(xem, tep)}>
             Dùng kỳ này
           </button>
         </section>

@@ -2,11 +2,13 @@
 
 body {
   margin: 0;
-  background: #f8fafc;
-  color: #0f172a;
+  background: #f5f7fa;
+  color: #17212b;
   font-family: Arial, Helvetica, sans-serif;
+  font-weight: 400;
 }
 
 .so {
   font-variant-numeric: tabular-nums;
+  font-weight: 400;
 }

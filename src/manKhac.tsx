@@ -24,8 +24,8 @@ const T = 1e9;
 function Tieu({ tieu }: { tieu: string }) {
   return (
     <div className="mb-3">
-      <h2 className="text-lg font-semibold">{tieu}</h2>
-      <p className="text-sm text-slate-500">{CHU_TEST}</p>
+      <h2 className="text-[16px] font-semibold text-[#233543]">{tieu}</h2>
+      <p className="mt-1 text-[12px] text-[#81909d]">{CHU_TEST}</p>
     </div>
   );
 }
@@ -56,7 +56,7 @@ export function ManBo({ id, coSoThu }: { id: ManId; coSoThu: boolean }) {
     return (
       <div className="space-y-4">
         <Tieu tieu="Nhà cung cấp" />
-        <section className="overflow-auto rounded-xl border border-slate-200 bg-white">
+        <section className="overflow-auto rounded-xl border border-[#dfe6ec] bg-white shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs text-slate-500">
               <tr>
@@ -71,7 +71,7 @@ export function ManBo({ id, coSoThu }: { id: ManId; coSoThu: boolean }) {
               {NCC.map((k) => (
                 <tr key={k.ma} className="border-t border-slate-100">
                   <td className="px-3 py-2">
-                    <button type="button" className="text-[#0073E6] underline" onClick={() => setNcc(k.ma)}>{k.ma}</button>
+                    <button type="button" className="text-[#1769aa] underline" onClick={() => setNcc(k.ma)}>{k.ma}</button>
                   </td>
                   <td className="px-3 py-2">{k.ten}</td>
                   <td className="so px-3 py-2">{ty(k.du * T)}</td>

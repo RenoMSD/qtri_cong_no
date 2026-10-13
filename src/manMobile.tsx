@@ -20,11 +20,6 @@ import {
   Pie,
   Cell,
   Tooltip,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
 } from 'recharts';
 import type { KetQua, BucketKey } from './lib/metrics';
 import { BUCKET_KEYS, BUCKET_LABEL, topRuiRo } from './lib/metrics';
@@ -93,7 +88,6 @@ export function ManMobileApp({
   const [tabHienTai, setTabHienTai] = useState<MobileTab>('tongquan');
   const [nhomCanhBaoChon, setNhomCanhBaoChon] = useState<NhomCanhBaoId>('vuot-hm');
   const [maKhachChiTiet, setMaKhachChiTiet] = useState<string | null>(null);
-  const [kieuBieuDoTuoi, setKieuBieuDoTuoi] = useState<'tron' | 'cot'>('tron');
   const [tuKhoa, setTuKhoa] = useState('');
   const [locSaleMobile, setLocSaleMobile] = useState('ALL');
   const [locHangMobile, setLocHangMobile] = useState('ALL');
@@ -150,14 +144,14 @@ export function ManMobileApp({
         <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white px-3 py-2.5 shadow-2xs">
           <button
             type="button"
-            className="flex items-center gap-1.5 text-xs font-semibold text-[#0073E6] hover:text-blue-700 py-1 px-1.5 rounded-lg active:bg-blue-50"
+            className="flex items-center gap-1.5 text-[12px] text-[#1769aa] hover:text-blue-700 py-1 px-1.5 rounded-lg active:bg-blue-50"
             onClick={() => setMaKhachChiTiet(null)}
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Quay lại</span>
           </button>
           <div className="text-center">
-            <span className="text-xs font-bold text-slate-900 block truncate max-w-[200px]">
+            <span className="text-xs font-normal text-slate-900 block truncate max-w-[200px]">
               {maKhachChiTiet}
             </span>
             <span className="text-[10px] text-slate-500">Hồ sơ công nợ chi tiết</span>
@@ -179,18 +173,18 @@ export function ManMobileApp({
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 pb-20 select-none">
+    <div className="flex min-h-screen select-none flex-col bg-[#f5f7fa] pb-20 text-[#17212b]">
       {/* 1. Mobile App Top Bar */}
-      <header className="sticky top-0 z-30 border-b border-slate-200/90 bg-white shadow-2xs">
+      <header className="sticky top-0 z-30 border-b border-[#dfe6ec] bg-white shadow-2xs">
         <div className="flex items-center justify-between px-3.5 py-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-[#005bb5] to-[#0073E6] text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
-              TPC
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[#1769aa] text-[11px] text-white">
+              TC
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="truncate text-xs font-bold text-slate-900">{TEN_CONG_TY}</span>
-                <span className="rounded bg-blue-50 px-1.5 py-0.2 text-[9.5px] font-semibold text-[#0073E6] border border-blue-100/80 shrink-0">
+                <span className="truncate text-xs font-normal text-slate-900">{TEN_CONG_TY}</span>
+                <span className="rounded bg-blue-50 px-1.5 py-0.2 text-[9.5px] text-[#1769aa] border border-blue-100/80 shrink-0">
                   Mobile App
                 </span>
               </div>
@@ -204,7 +198,7 @@ export function ManMobileApp({
             {/* Notification Bell */}
             <button
               type="button"
-              className="relative p-1.5 text-slate-600 hover:text-[#0073E6] active:bg-slate-100 rounded-lg transition"
+              className="relative p-1.5 text-slate-600 hover:text-[#1769aa] active:bg-slate-100 rounded-lg transition"
               onClick={() => {
                 setTabHienTai('canhbao');
                 setNhomCanhBaoChon('vuot-hm');
@@ -221,11 +215,11 @@ export function ManMobileApp({
             {/* Switch to Web Button */}
             <button
               type="button"
-              className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 transition"
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 transition"
               onClick={onChuyenWeb}
               title="Chuyển sang giao diện Bản Web máy tính"
             >
-              <Monitor className="h-3.5 w-3.5 text-[#0073E6]" />
+              <Monitor className="h-3.5 w-3.5 text-[#1769aa]" />
               <span className="hidden xs:inline">Bản Web</span>
             </button>
           </div>
@@ -245,15 +239,15 @@ export function ManMobileApp({
         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50/80 border-t border-slate-100 overflow-x-auto scrollbar-none text-[11px]">
           <button
             type="button"
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-slate-200/90 text-slate-700 font-medium shrink-0 active:bg-blue-50 shadow-2xs"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-[#dfe6ec] text-slate-700 shrink-0 active:bg-blue-50 shadow-2xs"
             onClick={onMoIn}
           >
-            <Download className="h-3 w-3 text-[#0073E6]" />
+            <Download className="h-3 w-3 text-[#1769aa]" />
             <span>Xuất PDF</span>
           </button>
           <button
             type="button"
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-slate-200/90 text-slate-700 font-medium shrink-0 active:bg-blue-50 shadow-2xs"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-[#dfe6ec] text-slate-700 shrink-0 active:bg-blue-50 shadow-2xs"
             onClick={onMoNap}
           >
             <UploadCloud className="h-3 w-3 text-emerald-600" />
@@ -261,7 +255,7 @@ export function ManMobileApp({
           </button>
           <button
             type="button"
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-slate-200/90 text-slate-700 font-medium shrink-0 active:bg-blue-50 shadow-2xs"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-[#dfe6ec] text-slate-700 shrink-0 active:bg-blue-50 shadow-2xs"
             onClick={() => setTabHienTai('khach')}
           >
             <Search className="h-3 w-3 text-sky-600" />
@@ -269,7 +263,7 @@ export function ManMobileApp({
           </button>
           <button
             type="button"
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200/90 text-rose-700 font-medium shrink-0 shadow-2xs"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200/90 text-rose-700 shrink-0 shadow-2xs"
             onClick={() => {
               setTabHienTai('canhbao');
               setNhomCanhBaoChon('vuot-hm');
@@ -293,60 +287,49 @@ export function ManMobileApp({
             {tabHienTai === 'tongquan' && (
               <div className="space-y-3">
                 {/* Hero Balance Card (Đặc trưng Mobile Banking/ERP) */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-[#00387a] to-[#0073E6] p-4 text-white shadow-md">
-                  <div className="flex items-center justify-between text-xs text-blue-100/90">
-                    <span className="font-medium tracking-wide uppercase text-[10px]">Tổng dư nợ toàn công ty</span>
-                    <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold backdrop-blur-xs">
+                <div className="rounded-xl border border-[#dfe6ec] bg-white p-4 shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+                  <div className="flex items-center justify-between text-[12px] text-[#728290]">
+                    <span>Tổng phải thu</span>
+                    <span className="rounded-md bg-[#e8f2fb] px-2 py-1 text-[11px] text-[#1769aa]">
                       {ky ? ky.meta.tuanNhan : 'AR'}
                     </span>
                   </div>
-
-                  <div className="mt-2 flex items-baseline justify-between">
-                    <div className="so text-2xl xs:text-3xl font-extrabold tracking-tight">
-                      {ty(tong.duNo)}
-                    </div>
+                  <div className="mt-3 flex items-end gap-1">
+                    <span className="so text-[26px] font-normal tracking-[-0.04em] text-[#1f2d39]">{ty(tong.duNo)}</span>
                   </div>
-
-                  {/* Dual Progress: Trong hạn vs Quá hạn */}
-                  <div className="mt-3.5 space-y-1.5">
-                    <div className="flex items-center justify-between text-[11px] text-blue-100">
-                      <span>Trong hạn: <strong>{ty(tong.trongHan)}</strong></span>
-                      <span className="text-amber-200">
-                        Quá hạn: <strong>{ty(tong.quaHan)}</strong> ({pct(tong.duNo > 0 ? tong.quaHan / tong.duNo : 0)})
-                      </span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-white/20">
-                      <div
-                        className="h-full rounded-full bg-emerald-400 transition-all"
-                        style={{
-                          width: `${Math.min(100, Math.max(0, tong.duNo > 0 ? (tong.trongHan / tong.duNo) * 100 : 0))}%`,
-                        }}
-                      />
-                    </div>
+                  <div className="mt-3 flex items-center justify-between text-[11px] text-[#697887]">
+                    <span>Trong hạn {ty(tong.trongHan)}</span>
+                    <span className="text-[#c7634d]">Quá hạn {ty(tong.quaHan)} ({pct(tong.duNo > 0 ? tong.quaHan / tong.duNo : 0)})</span>
                   </div>
-
-                  {/* Card bottom pills */}
-                  <div className="mt-3.5 flex items-center justify-between border-t border-white/15 pt-2.5 text-[11px] text-blue-100/80">
-                    <span>Số khách hàng: <strong className="text-white">{tong.soKhach}</strong></span>
-                    <span>DSO kỳ: <strong className="text-white">{so1(tong.dsoKy)} ngày</strong></span>
+                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#edf1f4]">
+                    <div
+                      className="h-full rounded-full bg-[#77aed2]"
+                      style={{
+                        width: `${Math.min(100, Math.max(0, tong.duNo > 0 ? (tong.trongHan / tong.duNo) * 100 : 0))}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-[11px] text-[#81909d]">
+                    <span>{tong.soKhach} khách</span>
+                    <span>DSO {so1(tong.dsoKy)} ngày</span>
                   </div>
                 </div>
 
                 {/* 3 KPI Cards Mini Row */}
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 text-center shadow-2xs">
-                    <div className="text-[10.5px] font-medium text-slate-500 truncate">Quá hạn</div>
-                    <div className="so mt-1 text-sm xs:text-base font-bold text-rose-600 truncate">
+                  <div className="rounded-xl border border-[#dfe6ec] bg-white p-2.5 text-center shadow-2xs">
+                    <div className="text-[10.5px] text-slate-500 truncate">Quá hạn</div>
+                    <div className="so mt-1 text-sm xs:text-base font-normal text-rose-600 truncate">
                       {ty(tong.quaHan)}
                     </div>
-                    <div className="mt-0.5 text-[9.5px] text-rose-500 font-medium">
+                    <div className="mt-0.5 text-[9.5px] text-rose-500">
                       {pct(tong.duNo > 0 ? tong.quaHan / tong.duNo : 0)}
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 text-center shadow-2xs">
-                    <div className="text-[10.5px] font-medium text-slate-500 truncate">DSO kỳ</div>
-                    <div className="so mt-1 text-sm xs:text-base font-bold text-sky-600 truncate">
+                  <div className="rounded-xl border border-[#dfe6ec] bg-white p-2.5 text-center shadow-2xs">
+                    <div className="text-[10.5px] text-slate-500 truncate">DSO kỳ</div>
+                    <div className="so mt-1 text-sm xs:text-base font-normal text-sky-600 truncate">
                       {tong.dsoKy != null ? `${so1(tong.dsoKy)} d` : '—'}
                     </div>
                     <div className="mt-0.5 text-[9.5px] text-slate-400">Thu bình quân</div>
@@ -357,12 +340,12 @@ export function ManMobileApp({
                     )}
                   </div>
 
-                  <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 text-center shadow-2xs">
-                    <div className="text-[10.5px] font-medium text-slate-500 truncate">Nợ xấu</div>
-                    <div className="so mt-1 text-sm xs:text-base font-bold text-amber-600 truncate">
+                  <div className="rounded-xl border border-[#dfe6ec] bg-white p-2.5 text-center shadow-2xs">
+                    <div className="text-[10.5px] text-slate-500 truncate">Nợ xấu</div>
+                    <div className="so mt-1 text-sm xs:text-base font-normal text-amber-600 truncate">
                       {ty(tong.noKhoDoi)}
                     </div>
-                    <div className="mt-0.5 text-[9.5px] text-amber-600 font-medium">
+                    <div className="mt-0.5 text-[9.5px] text-amber-600">
                       {tong.soKhachNoKhoDoi} KH
                     </div>
                     {locThoiGian && layKhoangThoiGian(locThoiGian, ky?.meta).laLoc && (
@@ -374,37 +357,12 @@ export function ManMobileApp({
                 </div>
 
                 {/* Cơ cấu tuổi nợ Mobile (Interactive Chart) */}
-                <div className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <div>
-                      <h3 className="text-xs font-bold text-slate-900">Cơ cấu tuổi nợ</h3>
-                      <p className="text-[10.5px] text-slate-500">Tỷ trọng các nhóm theo hạn</p>
-                    </div>
-                    {/* Toggle Donut / Bar */}
-                    <div className="flex items-center rounded-lg bg-slate-100 p-0.5 text-xs">
-                      <button
-                        type="button"
-                        className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
-                          kieuBieuDoTuoi === 'tron' ? 'bg-white text-[#0073E6] shadow-2xs' : 'text-slate-600'
-                        }`}
-                        onClick={() => setKieuBieuDoTuoi('tron')}
-                      >
-                        Tròn
-                      </button>
-                      <button
-                        type="button"
-                        className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
-                          kieuBieuDoTuoi === 'cot' ? 'bg-white text-[#0073E6] shadow-2xs' : 'text-slate-600'
-                        }`}
-                        onClick={() => setKieuBieuDoTuoi('cot')}
-                      >
-                        Cột
-                      </button>
-                    </div>
+                <div className="rounded-xl border border-[#dfe6ec] bg-white p-3.5 shadow-2xs">
+                  <div className="border-b border-slate-100 pb-2">
+                    <h3 className="text-[13px] text-[#233543]">Cơ cấu tuổi nợ</h3>
+                    <p className="text-[11px] text-[#81909d]">Tỷ trọng các nhóm theo hạn</p>
                   </div>
-
-                  {kieuBieuDoTuoi === 'tron' ? (
-                    <div className="pt-2">
+                  <div className="pt-2">
                       <div className="h-44 relative flex items-center justify-center">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
@@ -418,7 +376,7 @@ export function ManMobileApp({
                               isAnimationActive={false}
                             >
                               {duLieuTuoiDuong.map((d) => (
-                                <Cell key={d.k} fill={MAU_BUCKET[d.k] || '#0073E6'} />
+                                <Cell key={d.k} fill={MAU_BUCKET[d.k] || '#1769aa'} />
                               ))}
                             </Pie>
                             <Tooltip
@@ -428,8 +386,8 @@ export function ManMobileApp({
                                 const p = tong.duNo > 0 ? (d.v / tong.duNo) * 100 : 0;
                                 return (
                                   <div className="rounded-lg border border-slate-200 bg-white p-2 text-xs shadow-md">
-                                    <div className="font-semibold text-slate-800">{d.n}</div>
-                                    <div className="so text-[#0073E6] font-bold mt-0.5">
+                                    <div className="text-[#384956]">{d.n}</div>
+                                    <div className="so text-[#1769aa] font-normal mt-0.5">
                                       {ty(d.v)} ({p.toFixed(1)}%)
                                     </div>
                                   </div>
@@ -439,8 +397,8 @@ export function ManMobileApp({
                           </PieChart>
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          <span className="so text-xs font-bold text-slate-800">{ty(tong.duNo)}</span>
-                          <span className="text-[9px] text-slate-400 uppercase font-medium">Dư nợ</span>
+                          <span className="so text-xs font-normal text-slate-800">{ty(tong.duNo)}</span>
+                          <span className="text-[9px] text-slate-400 uppercase">Dư nợ</span>
                         </div>
                       </div>
 
@@ -456,65 +414,25 @@ export function ManMobileApp({
                               </div>
                               <div className="flex items-center gap-2 shrink-0 text-[11px]">
                                 <span className="text-slate-400">{p.toFixed(1)}%</span>
-                                <span className="so font-semibold text-slate-800">{ty(d.v)}</span>
+                                <span className="so text-slate-800">{ty(d.v)}</span>
                               </div>
                             </div>
                           );
                         })}
-                      </div>
                     </div>
-                  ) : (
-                    <div className="h-52 w-full pt-2">
-                      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                        <BarChart data={duLieuTuoiDuong} margin={{ top: 8, right: 8, left: -16, bottom: 24 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                          <XAxis
-                            dataKey="n"
-                            interval={0}
-                            angle={-30}
-                            textAnchor="end"
-                            height={40}
-                            tick={{ fontSize: 9, fill: '#64748b' }}
-                          />
-                          <YAxis
-                            tickFormatter={(v) => (v === 0 ? '0' : (v / 1e9).toFixed(0))}
-                            tick={{ fontSize: 9, fill: '#94a3b8' }}
-                            width={32}
-                            unit=" tỷ"
-                          />
-                          <Tooltip
-                            content={({ active, payload }) => {
-                              if (!active || !payload?.length) return null;
-                              const d = payload[0].payload as { n: string; v: number };
-                              return (
-                                <div className="rounded-lg border border-slate-200 bg-white p-2 text-xs shadow-md">
-                                  <div className="font-semibold">{d.n}</div>
-                                  <div className="so text-[#0073E6] font-bold">{ty(d.v)}</div>
-                                </div>
-                              );
-                            }}
-                          />
-                          <Bar dataKey="v" radius={[3, 3, 0, 0]} maxBarSize={32}>
-                            {duLieuTuoiDuong.map((d) => (
-                              <Cell key={d.k} fill={MAU_BUCKET[d.k] || '#0073E6'} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* 4 Cảnh báo rủi ro thẻ nhanh */}
-                <div className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs">
+                <div className="rounded-xl border border-[#dfe6ec] bg-white p-3.5 shadow-2xs">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
                     <div>
-                      <h3 className="text-xs font-bold text-slate-900">4 Nhóm cảnh báo rủi ro</h3>
+                      <h3 className="text-xs font-normal text-slate-900">4 Nhóm cảnh báo rủi ro</h3>
                       <p className="text-[10.5px] text-slate-500">Chạm thẻ để xem danh sách chi tiết</p>
                     </div>
                     <button
                       type="button"
-                      className="text-xs text-[#0073E6] font-semibold flex items-center gap-0.5"
+                      className="text-xs text-[#1769aa] flex items-center gap-0.5"
                       onClick={() => {
                         setTabHienTai('canhbao');
                         setNhomCanhBaoChon('vuot-hm');
@@ -529,16 +447,16 @@ export function ManMobileApp({
                       <button
                         key={n.id}
                         type="button"
-                        className="rounded-lg border border-slate-200/80 bg-slate-50/70 p-2.5 text-left active:bg-blue-50/40 active:border-[#0073E6] transition flex flex-col justify-between"
+                        className="rounded-lg border border-slate-200/80 bg-slate-50/70 p-2.5 text-left active:bg-blue-50/40 active:border-[#1769aa] transition flex flex-col justify-between"
                         onClick={() => {
                           setNhomCanhBaoChon(n.id);
                           setTabHienTai('canhbao');
                         }}
                       >
-                        <div className="text-[11.5px] font-semibold text-slate-800 truncate">{n.ten}</div>
+                        <div className="text-[11.5px] text-slate-800 truncate">{n.ten}</div>
                         <div className="mt-1.5">
                           <div className="text-[10px] text-slate-500">{n.soKhach} khách hàng</div>
-                          <div className="so text-xs font-bold text-[#0073E6] truncate mt-0.5">
+                          <div className="so text-xs font-normal text-[#1769aa] truncate mt-0.5">
                             {ty(n.tongTien)}
                           </div>
                         </div>
@@ -548,15 +466,15 @@ export function ManMobileApp({
                 </div>
 
                 {/* Top khách hàng rủi ro cao nhất (Card format Mobile) */}
-                <div className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs">
+                <div className="rounded-xl border border-[#dfe6ec] bg-white p-3.5 shadow-2xs">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
                     <div>
-                      <h3 className="text-xs font-bold text-slate-900">Top khách hàng rủi ro kỳ</h3>
+                      <h3 className="text-xs font-normal text-slate-900">Top khách hàng rủi ro kỳ</h3>
                       <p className="text-[10.5px] text-slate-500">Xếp theo trọng số quá hạn lớn nhất</p>
                     </div>
                     <button
                       type="button"
-                      className="text-xs text-[#0073E6] font-semibold flex items-center gap-0.5"
+                      className="text-xs text-[#1769aa] flex items-center gap-0.5"
                       onClick={() => setTabHienTai('khach')}
                     >
                       Danh sách <ChevronRight className="h-3 w-3" />
@@ -575,7 +493,7 @@ export function ManMobileApp({
                               ? 'bg-blue-50 text-blue-700'
                               : diem >= 2
                                 ? 'bg-amber-50 text-amber-700'
-                                : 'bg-rose-50 text-rose-700 font-bold';
+                                : 'bg-rose-50 text-rose-700 font-normal';
 
                       return (
                         <div
@@ -584,17 +502,17 @@ export function ManMobileApp({
                           onClick={() => setMaKhachChiTiet(k.maKH)}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-700">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-normal text-slate-700">
                               {i + 1}
                             </span>
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-xs text-[#0073E6]">{k.maKH}</span>
-                                <span className={`text-[10px] px-1.5 py-0.2 rounded font-semibold ${mauDiem}`}>
+                                <span className="font-normal text-xs text-[#1769aa]">{k.maKH}</span>
+                                <span className={`text-[10px] px-1.5 py-0.2 rounded ${mauDiem}`}>
                                   {diem != null ? `${so1(diem)}đ` : k.hang}
                                 </span>
                               </div>
-                              <div className="text-[11px] text-slate-800 font-medium truncate max-w-[160px]">
+                              <div className="text-[11px] text-slate-800 truncate max-w-[160px]">
                                 {tenKhach(k, chon.tay)}
                               </div>
                               <div className="text-[10px] text-slate-400">Sale: {k.sale || '—'}</div>
@@ -603,7 +521,7 @@ export function ManMobileApp({
 
                           <div className="text-right shrink-0">
                             <div className="text-[10px] text-slate-400">Quá hạn</div>
-                            <div className="so text-xs font-bold text-rose-600">{ty(k.quaHan)}</div>
+                            <div className="so text-xs font-normal text-rose-600">{ty(k.quaHan)}</div>
                             <div className="text-[9.5px] text-slate-500">TS: {ty(k.trongSo)}</div>
                           </div>
                         </div>
@@ -618,7 +536,7 @@ export function ManMobileApp({
             {tabHienTai === 'bieudo' && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                  <h3 className="text-sm font-bold text-slate-900">Biểu đồ Phân tích & Xu hướng</h3>
+                  <h3 className="text-sm font-normal text-slate-900">Biểu đồ Phân tích & Xu hướng</h3>
                   <span className="text-[10.5px] text-slate-500">Dữ liệu sổ chốt</span>
                 </div>
 
@@ -634,9 +552,9 @@ export function ManMobileApp({
                     <button
                       key={sub.id}
                       type="button"
-                      className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition ${
+                      className={`px-3 py-1 rounded-full text-xs shrink-0 transition ${
                         bieuDoSubTab === sub.id
-                          ? 'bg-[#0073E6] text-white shadow-xs'
+                          ? 'bg-[#1769aa] text-white shadow-xs'
                           : 'bg-white text-slate-600 border border-slate-200'
                       }`}
                       onClick={() => setBieuDoSubTab(sub.id as typeof bieuDoSubTab)}
@@ -667,7 +585,7 @@ export function ManMobileApp({
             {tabHienTai === 'canhbao' && (
               <div className="space-y-3">
                 <div className="border-b border-slate-200/80 pb-2">
-                  <h3 className="text-sm font-bold text-slate-900">Cảnh báo rủi ro & Hạn mức</h3>
+                  <h3 className="text-sm font-normal text-slate-900">Cảnh báo rủi ro & Hạn mức</h3>
                   <p className="text-[11px] text-slate-500">Phân loại theo mức độ vi phạm và thời gian quá hạn</p>
                 </div>
 
@@ -681,15 +599,15 @@ export function ManMobileApp({
                         type="button"
                         className={`p-2.5 rounded-lg border text-left transition ${
                           bat
-                            ? 'bg-blue-50/80 border-[#0073E6] text-[#0073E6] shadow-2xs'
+                            ? 'bg-blue-50/80 border-[#1769aa] text-[#1769aa] shadow-2xs'
                             : 'bg-white border-slate-200 text-slate-700'
                         }`}
                         onClick={() => setNhomCanhBaoChon(n.id)}
                       >
-                        <div className="text-xs font-bold truncate">{n.ten}</div>
+                        <div className="text-xs font-normal truncate">{n.ten}</div>
                         <div className="mt-1 flex items-baseline justify-between">
                           <span className="text-[10px] text-slate-500">{n.soKhach} KH</span>
-                          <span className="so text-xs font-semibold">{ty(n.tongTien)}</span>
+                          <span className="so text-[12px]">{ty(n.tongTien)}</span>
                         </div>
                       </button>
                     );
@@ -701,12 +619,12 @@ export function ManMobileApp({
                   const nhomHienTai = nhomCanhBao.find((n) => n.id === nhomCanhBaoChon);
                   if (!nhomHienTai) return null;
                   return (
-                    <div className="rounded-xl border border-slate-200/90 bg-white p-3 shadow-2xs">
+                    <div className="rounded-xl border border-[#dfe6ec] bg-white p-3 shadow-2xs">
                       <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
-                        <span className="text-xs font-bold text-slate-900">
+                        <span className="text-xs font-normal text-slate-900">
                           {nhomHienTai.ten} ({nhomHienTai.soKhach} khách)
                         </span>
-                        <span className="so text-xs font-bold text-rose-600">
+                        <span className="so text-xs font-normal text-rose-600">
                           {ty(nhomHienTai.tongTien)}
                         </span>
                       </div>
@@ -725,10 +643,10 @@ export function ManMobileApp({
                             >
                               <div className="min-w-0">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="font-bold text-xs text-[#0073E6]">{k.maKH}</span>
+                                  <span className="font-normal text-xs text-[#1769aa]">{k.maKH}</span>
                                   <span className="text-[10px] text-slate-500">· {k.sale || 'Chưa gán'}</span>
                                 </div>
-                                <div className="text-xs font-semibold text-slate-800 truncate max-w-[190px]">
+                                <div className="text-[12px] text-slate-800 truncate max-w-[190px]">
                                   {k.tenKH}
                                 </div>
                                 <div className="text-[10px] text-slate-500 mt-0.5">
@@ -737,7 +655,7 @@ export function ManMobileApp({
                               </div>
 
                               <div className="text-right shrink-0">
-                                <div className="so text-xs font-bold text-rose-600">
+                                <div className="so text-xs font-normal text-rose-600">
                                   {ty(k.tien)}
                                 </div>
                                 <div className="text-[10px] text-slate-500">
@@ -758,7 +676,7 @@ export function ManMobileApp({
             {tabHienTai === 'khach' && (
               <div className="space-y-3">
                 <div className="border-b border-slate-200/80 pb-2">
-                  <h3 className="text-sm font-bold text-slate-900">Danh mục Khách hàng</h3>
+                  <h3 className="text-sm font-normal text-slate-900">Danh mục Khách hàng</h3>
                   <p className="text-[11px] text-slate-500">Tìm kiếm & xem hồ sơ hạn mức, điểm tín dụng chi tiết</p>
                 </div>
 
@@ -768,7 +686,7 @@ export function ManMobileApp({
                     <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                     <input
                       type="text"
-                      className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2 text-xs placeholder:text-slate-400 focus:border-[#0073E6] focus:outline-none"
+                      className="w-full rounded-xl border border-[#dfe6ec] bg-white shadow-[0_1px_2px_rgba(20,40,60,0.03)] pl-9 pr-3 py-2 text-xs placeholder:text-slate-400 focus:border-[#1769aa] focus:outline-none"
                       placeholder="Tìm theo mã hoặc tên khách hàng…"
                       value={tuKhoa}
                       onChange={(e) => setTuKhoa(e.target.value)}
@@ -812,7 +730,7 @@ export function ManMobileApp({
 
                 {/* Customer List Count */}
                 <div className="flex items-center justify-between text-xs text-slate-500 px-0.5">
-                  <span>Tìm thấy <strong>{danhSachKhachLoc.length}</strong> khách hàng</span>
+                  <span>Tìm thấy <span>{danhSachKhachLoc.length}</span> khách hàng</span>
                   <span>Chạm thẻ để mở hồ sơ</span>
                 </div>
 
@@ -821,16 +739,16 @@ export function ManMobileApp({
                   {danhSachKhachLoc.slice(0, 40).map((k) => (
                     <div
                       key={k.maKH}
-                      className="rounded-xl border border-slate-200/90 bg-white p-3 shadow-2xs active:bg-blue-50/30 transition cursor-pointer"
+                      className="rounded-xl border border-[#dfe6ec] bg-white p-3 shadow-2xs active:bg-blue-50/30 transition cursor-pointer"
                       onClick={() => setMaKhachChiTiet(k.maKH)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-xs text-[#0073E6]">{k.maKH}</span>
+                          <span className="font-normal text-xs text-[#1769aa]">{k.maKH}</span>
                           <span className="text-[10px] text-slate-400">· {k.sale || 'Chưa gán'}</span>
                         </div>
                         <span
-                          className={`text-[10px] px-2 py-0.2 rounded font-semibold ${
+                          className={`text-[10px] px-2 py-0.2 rounded ${
                             k.hang === 'Tốt'
                               ? 'bg-emerald-50 text-emerald-700'
                               : k.hang === 'Trung bình'
@@ -844,18 +762,18 @@ export function ManMobileApp({
                         </span>
                       </div>
 
-                      <div className="text-xs font-semibold text-slate-800 mt-1 truncate">
+                      <div className="text-[12px] text-slate-800 mt-1 truncate">
                         {tenKhach(k, chon.tay)}
                       </div>
 
                       <div className="mt-2.5 grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-[11px]">
                         <div>
                           <span className="text-slate-400">Dư nợ: </span>
-                          <span className="so font-bold text-slate-900">{ty(k.duNo)}</span>
+                          <span className="so font-normal text-slate-900">{ty(k.duNo)}</span>
                         </div>
                         <div className="text-right">
                           <span className="text-slate-400">Quá hạn: </span>
-                          <span className="so font-bold text-rose-600">{ty(k.quaHan)}</span>
+                          <span className="so font-normal text-rose-600">{ty(k.quaHan)}</span>
                         </div>
                       </div>
                     </div>
@@ -873,7 +791,7 @@ export function ManMobileApp({
             {tabHienTai === 'them' && (
               <div className="space-y-3.5">
                 <div className="border-b border-slate-200/80 pb-2">
-                  <h3 className="text-sm font-bold text-slate-900">Phân hệ & Công cụ khác</h3>
+                  <h3 className="text-sm font-normal text-slate-900">Phân hệ & Công cụ khác</h3>
                   <p className="text-[11px] text-slate-500">Dòng tiền 13 tuần, mua hàng, nạp sổ và cài đặt</p>
                 </div>
 
@@ -881,33 +799,33 @@ export function ManMobileApp({
                 <DanhSachKeHoachMua boLoc={locThoiGian} />
 
                 {/* Dòng tiền 13 tuần */}
-                <div className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs">
+                <div className="rounded-xl border border-[#dfe6ec] bg-white p-3.5 shadow-2xs">
                   <div className="border-b border-slate-100 pb-2 mb-2">
-                    <h3 className="text-xs font-bold text-slate-900">Dòng tiền 13 tuần (Tham khảo)</h3>
+                    <h3 className="text-xs font-normal text-slate-900">Dòng tiền 13 tuần (Tham khảo)</h3>
                     <p className="text-[10px] text-slate-500">{CHU_TEST}</p>
                   </div>
                   <Khoi so={soBoTest('bt-tien-tuan', locThoiGian)!} />
                 </div>
 
                 {/* Aging AP */}
-                <div className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs">
+                <div className="rounded-xl border border-[#dfe6ec] bg-white p-3.5 shadow-2xs">
                   <div className="border-b border-slate-100 pb-2 mb-2">
-                    <h3 className="text-xs font-bold text-slate-900">Tuổi nợ phải trả AP</h3>
+                    <h3 className="text-xs font-normal text-slate-900">Tuổi nợ phải trả AP</h3>
                     <p className="text-[10px] text-slate-500">Nợ nhà cung cấp theo các kỳ hạn</p>
                   </div>
                   <Khoi so={soBoTest('bt-ap-tuoi', locThoiGian)!} />
                 </div>
 
                 {/* Menu items */}
-                <div className="rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-2xs divide-y divide-slate-100 text-xs">
+                <div className="rounded-xl border border-[#dfe6ec] bg-white overflow-hidden shadow-2xs divide-y divide-slate-100 text-xs">
                   <button
                     type="button"
                     className="w-full flex items-center justify-between p-3.5 text-left active:bg-slate-50"
                     onClick={onMoIn}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Download className="h-4 w-4 text-[#0073E6]" />
-                      <span className="font-semibold text-slate-800">Xuất báo cáo PDF Ban Giám Đốc</span>
+                      <Download className="h-4 w-4 text-[#1769aa]" />
+                      <span className="text-[#384956]">Xuất báo cáo PDF Ban Giám Đốc</span>
                     </div>
                     <ChevronRight className="h-4 w-4 text-slate-400" />
                   </button>
@@ -919,7 +837,7 @@ export function ManMobileApp({
                   >
                     <div className="flex items-center gap-2.5">
                       <UploadCloud className="h-4 w-4 text-emerald-600" />
-                      <span className="font-semibold text-slate-800">Nạp sổ dữ liệu Excel mới</span>
+                      <span className="text-[#384956]">Nạp sổ dữ liệu Excel mới</span>
                     </div>
                     <ChevronRight className="h-4 w-4 text-slate-400" />
                   </button>
@@ -931,7 +849,7 @@ export function ManMobileApp({
                   >
                     <div className="flex items-center gap-2.5">
                       <Monitor className="h-4 w-4 text-indigo-600" />
-                      <span className="font-semibold text-slate-800">Chuyển sang Giao diện Bản Web</span>
+                      <span className="text-[#384956]">Chuyển sang Giao diện Bản Web</span>
                     </div>
                     <ChevronRight className="h-4 w-4 text-slate-400" />
                   </button>
@@ -943,12 +861,12 @@ export function ManMobileApp({
       </main>
 
       {/* 3. Mobile App Bottom Navigation Bar (Cố định ở chân trang) */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg px-2 py-1 flex items-center justify-around">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-[#dfe6ec] bg-white/95 px-2 py-1 backdrop-blur">
         <button
           type="button"
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition ${
             tabHienTai === 'tongquan'
-              ? 'text-[#0073E6] font-semibold'
+              ? 'text-[#1769aa]'
               : 'text-slate-500 hover:text-slate-800'
           }`}
           onClick={() => setTabHienTai('tongquan')}
@@ -961,7 +879,7 @@ export function ManMobileApp({
           type="button"
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition ${
             tabHienTai === 'bieudo'
-              ? 'text-[#0073E6] font-semibold'
+              ? 'text-[#1769aa]'
               : 'text-slate-500 hover:text-slate-800'
           }`}
           onClick={() => setTabHienTai('bieudo')}
@@ -974,7 +892,7 @@ export function ManMobileApp({
           type="button"
           className={`relative flex flex-col items-center justify-center py-1 px-2 rounded-lg transition ${
             tabHienTai === 'canhbao'
-              ? 'text-rose-600 font-semibold'
+              ? 'text-rose-600'
               : 'text-slate-500 hover:text-slate-800'
           }`}
           onClick={() => setTabHienTai('canhbao')}
@@ -988,7 +906,7 @@ export function ManMobileApp({
           type="button"
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition ${
             tabHienTai === 'khach'
-              ? 'text-[#0073E6] font-semibold'
+              ? 'text-[#1769aa]'
               : 'text-slate-500 hover:text-slate-800'
           }`}
           onClick={() => setTabHienTai('khach')}
@@ -1001,7 +919,7 @@ export function ManMobileApp({
           type="button"
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition ${
             tabHienTai === 'them'
-              ? 'text-[#0073E6] font-semibold'
+              ? 'text-[#1769aa]'
               : 'text-slate-500 hover:text-slate-800'
           }`}
           onClick={() => setTabHienTai('them')}

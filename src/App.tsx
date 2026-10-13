@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Monitor, Smartphone } from 'lucide-react';
-import { TEN_CONG_TY } from './lib/chung';
 import type { KetQua } from './lib/metrics';
 import { parseArrayBuffer } from './lib/parseWorkbook';
 import { docTepSo, luuTepSo } from './luuSo';
 import { ngay } from './format';
-import { ChuaNap, ThanhBen, type ManId } from './khung';
+import { ChuaNap, ThanhBen, tenMan, type ManId } from './khung';
 import { ManAr, ManBieu, ManCanhBao, ManHoSo, ManKeHoach, ManKhach, ManNap, ManTong } from './man';
 import { ManMobileApp } from './manMobile';
 import { ManBo } from './manKhac';
@@ -156,31 +155,30 @@ export default function App() {
   // Chế độ Bản App (Mobile)
   if (cheDo === 'app') {
     return (
-      <div className="min-h-screen bg-slate-100 flex flex-col items-center">
-        {/* Thanh công cụ desktop khi xem Bản App */}
-        <div className="w-full bg-slate-900 text-white px-4 py-2 hidden md:flex items-center justify-between text-xs shadow-md z-50">
+      <div className="flex min-h-screen flex-col items-center bg-[#f5f7fa]">
+        <div className="z-50 hidden w-full items-center justify-between border-b border-[#dfe6ec] bg-white px-5 py-3 text-[12px] text-[#506170] md:flex">
           <div className="flex items-center gap-2.5">
-            <span className="font-bold text-sky-400">Tân Phú Cường</span>
-            <span className="text-slate-500">·</span>
-            <span className="text-slate-200 font-medium">Đang xem: Giao diện Bản App (Mobile)</span>
-            <span className="rounded bg-sky-500/20 px-2 py-0.5 text-[10.5px] text-sky-300 font-semibold border border-sky-400/30">
-              {moPhongKhung ? 'Khung iPhone 15' : 'Toàn màn hình Mobile'}
+            <span className="text-[#17212b]">Tân Phú Cường</span>
+            <span className="text-[#c5d0d8]">·</span>
+            <span>Đang xem bản App</span>
+            <span className="rounded-md bg-[#e8f2fb] px-2 py-1 text-[11px] text-[#1769aa]">
+              {moPhongKhung ? 'Khung điện thoại' : 'Toàn màn hình'}
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="cursor-pointer flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition"
+              className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-[#dfe6ec] bg-white px-3 text-[12px] text-[#506170]"
               onClick={() => setMoPhongKhung((v) => !v)}
               title="Chuyển đổi giữa chế độ khung điện thoại hoặc tràn viền màn hình"
             >
-              <Smartphone className="h-3.5 w-3.5 text-sky-400" />
-              <span>{moPhongKhung ? 'Xem tràn viền (Full mobile)' : 'Khung mô phỏng điện thoại'}</span>
+              <Smartphone className="size-3.5 text-[#5c8db7]" />
+              <span>{moPhongKhung ? 'Xem tràn viền' : 'Khung điện thoại'}</span>
             </button>
             <button
               type="button"
-              className="cursor-pointer flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#0073E6] hover:bg-blue-600 text-white font-semibold shadow-xs transition"
+              className="flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[#1769aa] px-3 text-[12px] text-white hover:bg-[#125b92]"
               onClick={() => {
                 setCheDo('web');
                 try {
@@ -188,8 +186,8 @@ export default function App() {
                 } catch {}
               }}
             >
-              <Monitor className="h-3.5 w-3.5" />
-              <span>Chuyển sang Bản Web</span>
+              <Monitor className="size-3.5" />
+              <span>Bản Web</span>
             </button>
           </div>
         </div>
@@ -267,38 +265,33 @@ export default function App() {
 
   // Chế độ Bản Web (Desktop)
   return (
-    <div className="flex h-screen bg-slate-50 text-slate-900">
+    <div className="flex h-screen bg-[#f5f7fa] text-[#17212b]">
       <ThanhBen man={inMo ? 'baocao' : hoSo ? 'khach' : man} chon={chonMan} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className={`flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-2.5 shadow-2xs ${inMo ? 'hidden' : ''}`}>
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">{TEN_CONG_TY}</div>
-              <div className="text-xs text-slate-500">
-                {ky
-                  ? `Chốt ${ngay(kyHienThi?.meta.ngayChot || ky.meta.ngayChot)} · ${kyHienThi?.meta.tuanNhan || ky.meta.tuanNhan}`
-                  : dangMo
-                  ? 'Đang mở sổ…'
-                  : 'Chưa nạp sổ'}
-              </div>
+        <header className={`flex flex-col gap-3 border-b border-[#dfe6ec] bg-white/95 px-5 py-3 backdrop-blur md:px-8 xl:flex-row xl:items-center xl:justify-between ${inMo ? 'hidden' : ''}`}>
+          <div className="min-w-0">
+            <div className="truncate text-[21px] font-semibold tracking-[-0.03em] text-[#17212b]">
+              {hoSo ? 'Hồ sơ khách hàng' : tenMan(man)}
             </div>
-
-            {/* Thành phần Bộ lọc chọn khoảng thời gian (theo tháng/quý) áp dụng cho tất cả các biểu đồ */}
-            <div className="border-l border-slate-200 pl-3">
-              <BoLocThoiGianBar
-                ky={ky}
-                locThoiGian={locThoiGian}
-                setLocThoiGian={handleSetLocThoiGian}
-              />
+            <div className="text-[12px] text-[#8593a1]">
+              {ky
+                ? `Chốt ${ngay(kyHienThi?.meta.ngayChot || ky.meta.ngayChot)} · ${kyHienThi?.meta.tuanNhan || ky.meta.tuanNhan}`
+                : dangMo
+                ? 'Đang mở sổ…'
+                : 'Chưa nạp sổ'}
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            {/* Bộ chuyển đổi giữa Bản Web và Bản App */}
-            <div className="flex items-center rounded-lg bg-slate-100 p-0.5 text-xs">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 xl:flex-1 xl:justify-end">
+            <BoLocThoiGianBar
+              ky={ky}
+              locThoiGian={locThoiGian}
+              setLocThoiGian={handleSetLocThoiGian}
+            />
+            <div className="flex items-center rounded-lg border border-[#dfe6ec] bg-white p-0.5 text-[12px]">
               <button
                 type="button"
-                className="cursor-pointer flex items-center gap-1.5 px-3 py-1 rounded-md font-semibold transition bg-white text-[#0073E6] shadow-xs"
+                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-[#e8f2fb] px-3 py-1.5 text-[#1769aa]"
                 onClick={() => {
                   setCheDo('web');
                   try {
@@ -306,12 +299,12 @@ export default function App() {
                   } catch {}
                 }}
               >
-                <Monitor className="h-3.5 w-3.5" />
+                <Monitor className="size-3.5" />
                 <span>Bản Web</span>
               </button>
               <button
                 type="button"
-                className="cursor-pointer flex items-center gap-1.5 px-3 py-1 rounded-md font-semibold transition text-slate-600 hover:text-slate-900"
+                className="flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-[#697887] hover:text-[#253746]"
                 onClick={() => {
                   setCheDo('app');
                   try {
@@ -319,14 +312,14 @@ export default function App() {
                   } catch {}
                 }}
               >
-                <Smartphone className="h-3.5 w-3.5 text-emerald-600" />
+                <Smartphone className="size-3.5" />
                 <span>Bản App</span>
               </button>
             </div>
 
             <button
               type="button"
-              className="cursor-pointer rounded-lg bg-[#0073E6] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-600 active:scale-95 transition"
+              className="flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[#1769aa] px-3 text-[12px] text-white hover:bg-[#125b92]"
               onClick={() => moBaoCao(mauTuMan(man, ar, hoSo))}
             >
               Xuất PDF
@@ -338,7 +331,7 @@ export default function App() {
           {inMo ? (
             <SoanIn ky={ky} tay={tay} mauBanDau={mauIn} moHoSo={moHoSo} dong={dongBaoCao} />
           ) : (
-            <div className="p-4">
+            <div className="mx-auto max-w-[1600px] px-5 py-6 md:px-8">
               {man === 'nap' ? (
                 <ManNap
                   onKy={(k, tep) => {
@@ -375,7 +368,7 @@ export default function App() {
               ) : null}
               {coSo && chonKy && hoSo ? (
                 <div className="space-y-3">
-                  <button type="button" className="text-sm text-[#0073E6]" onClick={() => setHoSo(false)}>Về danh sách</button>
+                  <button type="button" className="text-[12px] text-[#1769aa]" onClick={() => setHoSo(false)}>Về danh sách</button>
                   <ManHoSo chon={chonKy} suaTay={suaTay} />
                 </div>
               ) : null}

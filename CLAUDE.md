@@ -13,14 +13,20 @@ SPA React 19 + Vite 6 + Tailwind 4 + TypeScript (strict). Chạy hoàn toàn ph�
 ## Luồng dữ liệu
 `.xlsx` → `lib/parseWorkbook.ts` (`parseWorkbook`) → `lib/metrics.ts` (`lapKy` → `KetQua`) → `locThoiGian.tsx` (`apDungBoLocThoiGian`) → `soLieu.ts` (`chonTu` → `Chon`, `soKhoi(id, chon)` → số cho từng khối) → màn hình.
 - Tệp sổ lưu IndexedDB (`luuSo.ts`); chỉnh tay (`Tay`) lưu localStorage theo checksum (`soLieu.ts` `docTay/luuTay`).
-- `boTest.ts`: số giả cho các màn TC2/AP/tiền chưa có dữ liệu thật (`MAN_BO` trong `App.tsx`) — không lấy từ Excel.
+- Không có số giả ở frontend. Phân hệ chưa có nguồn (phải trả, dòng tiền, mua hàng, sổ cái…) là mục khóa «Sắp có» (`ManSapCo` trong `khung.tsx`).
 
 ## Bản đồ file (src/)
-- `App.tsx` — state gốc, điều hướng màn, chế độ web/app (mobile)
-- `khung.tsx` — `ManId`, sidebar, thanh lọc · `man.tsx` — các màn chính · `manKhac.tsx` — màn dùng số test · `manMobile.tsx` — giao diện mobile
-- `khoi.tsx` — khối biểu đồ (recharts) · `format.ts` — định dạng số/ngày · `mauDiem.ts` — thang điểm/hạn mức
-- In ấn: `soan.tsx` (soạn) · `mauIn.ts` (khung mẫu) · `xemMau.tsx` (xem trước) · `pdf.ts`, `pdfMau.ts` (pdf-lib + fontkit)
+- `App.tsx` — state gốc, điều hướng 7 màn (Tổng quan có tab Danh mục/Tuần/TC1/TC2; Khách hàng có tab Kế hoạch tuần), chế độ web/app
+- `khung.tsx` — `ManId`, menu (`NHOM`), sidebar, `ThanhTab`, `ManSapCo` · `giaoDien.tsx` — thẻ `The`, `Nhan`, `DongHo`, `VongNhieu`, `ThanhNgang`
+- Màn: `manTongQuan.tsx` · `manPhanTich.tsx` (Tuổi nợ, Tín dụng) · `manKhachHang.tsx` (Cảnh báo Kanban, danh sách khách) · `manHoSo.tsx` · `man.tsx` (Nạp, tab TC1/TC2/tuần, kế hoạch, thêm tay) · `manMobile.tsx` — giao diện mobile
+- `khoi.tsx` — khối biểu đồ (recharts) · `format.ts` — định dạng số/ngày, `docSoTien` · `mauDiem.ts` — thang điểm/hạn mức
+- In ấn: `soan.tsx` (màn soạn) · `baoCao/` (3 mẫu in HTML theo template khách, màu navy riêng) · `pdfThu.ts` (biên bản đối chiếu, thư nhắc nợ, `taiXuong`)
 - `vite.config.ts` — middleware phục vụ `/api/font/arial.ttf` và `/mau-test/CongNo_Demo_Test.xlsx`
+
+## Design system
+- Token màu khai báo bằng `@theme` trong `src/index.css`: `primary` (Indigo #4f46e5), `line`, `foreground`, `subtle`, `muted`, `risk-safe/watch/overdue/bad/info` (+ `-soft`), `aging-1..11`, `shadow-card`, `rounded-the`. Font Be Vietnam Pro.
+- Dùng class token (`text-primary`, `border-line`, `bg-risk-bad-soft`…), không viết mã hex trong component. Biểu đồ recharts lấy màu từ `src/mauSac.ts` (cùng giá trị với token); chuỗi cạnh nhau dùng `DAY_MAU` để luôn khác màu, hạng Xấu = cam vàng, Rất xấu = đỏ.
+- Báo cáo in (`src/baoCao/`) giữ bảng màu navy theo mẫu khách, không dùng token app.
 
 ## Quy ước
 - Tên biến/hàm/file bằng tiếng Việt không dấu, viết tắt ngắn (`ky`, `tay`, `chon`, `khoi`, `man`); giữ đúng phong cách này.

@@ -276,3 +276,13 @@ export async function xuatThuNhacNo(kh: Khach, tenHien: string, meta: KyMeta) {
 
   return { bytes: await doc.save(), tenFile: tenFile('ThuNhacNo', kh, meta) };
 }
+
+export function taiXuong(bytes: Uint8Array, ten: string) {
+  const blob = new Blob([bytes], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = ten;
+  a.click();
+  URL.revokeObjectURL(url);
+}

@@ -7,6 +7,7 @@ SPA React 19 + Vite 6 + Tailwind 4 + TypeScript (strict). Chạy hoàn toàn ph�
 - `npm run lint` — `tsc --noEmit`, chạy sau mỗi lần sửa code
 - `npm test` — Vitest (`src/lib/metrics.test.ts`, gồm kiểm tra sổ mẫu khớp toàn bộ đáp án)
 - `npm run build`
+- `node scripts/tao-so-ky-sau.mjs` — sinh `excel/CongNo_Test_Ky_07_2026.xlsx`: kỳ 07 nối tiếp sổ demo, `Dap_an` tính độc lập, sheet `Huong_dan_test` mô tả tình huống S1–S7
 - `node scripts/tao-mau.mjs` — sinh `public/mau/*.xlsx` (dùng `exceljs`, devDependency)
 
 ## Luồng dữ liệu

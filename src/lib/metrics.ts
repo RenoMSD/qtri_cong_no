@@ -319,7 +319,10 @@ export function tinhSoNgayQH(ct: {
   if (!ct.ngayTT && ct.duCuoiKy === 0) return 0;
   if (!ct.ngayCt) return 0;
   const denHan = addDays(ct.ngayCt, ct.hanTT ?? 0);
-  return diffDays(ct.ngayTT ?? ct.ngayBaoCao, denHan);
+  // Còn nợ (kể cả đã trả một phần): tuổi nợ phần còn lại tính đến ngày báo cáo.
+  // Đã trả hết: tính đến ngày thanh toán, để biết khoản đó trả trễ bao nhiêu ngày.
+  const moc = ct.duCuoiKy > 0 ? ct.ngayBaoCao : (ct.ngayTT ?? ct.ngayBaoCao);
+  return diffDays(moc, denHan);
 }
 
 function band(value: number, maxes: [number, number, number, number]): number {

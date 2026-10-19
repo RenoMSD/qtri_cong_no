@@ -82,6 +82,16 @@ describe('tuổi nợ', () => {
     expect(tinhSoNgayQH({ ngayCt: '2026-06-01', hanTT: 10, ngayTT: '2026-06-05', ngayBaoCao: '2026-06-30', duCuoiKy: 0 })).toBe(-6);
   });
 
+  it('trả một phần trước hạn: phần còn nợ vẫn tính tuổi đến ngày báo cáo', () => {
+    // Đến hạn 11/07, trả 20/40 triệu ngày 05/07, chốt 31/07 → còn 20 triệu quá hạn 20 ngày
+    const ct = chungTu({ ngayCt: '2026-07-01', hanTT: 10, ngayTT: '2026-07-05', tienNo: 40, tienTT: 20, duCuoiKy: 20, ngayBaoCao: '2026-07-31' });
+    expect(ct.soNgayQH).toBe(20);
+    expect(ct.bucket).toBe('d0_30');
+    const kq = lapKy(dauVao([ct]));
+    expect(kq.tong.quaHan).toBe(20);
+    expect(kq.tong.trongHan).toBe(0);
+  });
+
   it('chứng từ thiếu hạn thanh toán lấy hạn của khách', () => {
     const kq = lapKy(dauVao([chungTu({ hanTT: 30 }), chungTu({ hanTT: null })]));
     const ct = kq.khach[0].chungTu[1];

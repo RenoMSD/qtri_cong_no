@@ -23,9 +23,31 @@ import {
 import { ty } from './format';
 import { THANG_DIEM, thangDiem } from './mauDiem';
 import type { SoKhoi } from './soLieu';
-import { DAY_MAU as MAU, MAU as SAC, MAU_HANG } from './mauSac';
+import { NHOM_MUA } from './boTest';
+import type { BoLocThoiGian } from './locThoiGian';
+import { layKhoangThoiGian } from './locThoiGian';
 
+const MAU = [
+  '#1769aa',
+  '#0284c7', // Sky Blue
+  '#0d9488', // Teal
+  '#10b981', // Emerald
+  '#6366f1', // Indigo
+  '#8b5cf6', // Violet
+  '#f59e0b', // Amber
+  '#ea580c', // Orange
+  '#e11d48', // Rose
+  '#be123c', // Crimson
+  '#475569', // Slate
+];
 
+const MAU_HANG: Record<string, string> = {
+  'Tốt': '#27875b',
+  'Trung bình': '#1769aa',
+  'Xấu': '#b87b20',
+  'Rất xấu': '#c7634d',
+  'Chưa chấm': '#94a3b8',
+};
 
 export function truc(v: number) {
   return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(v / 1e9);
@@ -37,7 +59,7 @@ export function NhanCot({ x, y, width, value }: { x?: number; y?: number; width?
   const t = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(n / 1e9);
   const yy = Math.max(12, (y ?? 0) - 4);
   return (
-    <text x={(x ?? 0) + (width ?? 0) / 2} y={yy} textAnchor="middle" fontSize={10} fill={SAC.subtle} fontWeight="400">
+    <text x={(x ?? 0) + (width ?? 0) / 2} y={yy} textAnchor="middle" fontSize={10} fill="#506170" fontWeight="400">
       {t}
     </text>
   );
@@ -53,7 +75,7 @@ export function mienY(ds: number[]): [number, number] {
 function Tip({ active, payload, label }: { active?: boolean; payload?: { name?: string; value?: number; color?: string; payload?: { hien?: string } }[]; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-line bg-white px-3 py-2 text-xs shadow">
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow">
       <div className="mb-1">{label}</div>
       {payload.map((p) => {
         const hien = (p.payload as { hien?: string } | undefined)?.hien;
@@ -69,9 +91,9 @@ function Tip({ active, payload, label }: { active?: boolean; payload?: { name?: 
 
 export function The({ tieu, phu, children }: { tieu: string; phu?: string; children: ReactNode }) {
   return (
-    <section className="rounded-xl border border-line bg-white p-5 shadow-card">
-      <h3 className="text-[16px] font-semibold text-foreground">{tieu}</h3>
-      {phu ? <p className="mt-1 text-[12px] text-muted">{phu}</p> : null}
+    <section className="rounded-xl border border-[#dfe6ec] bg-white p-5 shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+      <h3 className="text-[16px] font-semibold text-[#233543]">{tieu}</h3>
+      {phu ? <p className="mt-1 text-[12px] text-[#81909d]">{phu}</p> : null}
       <div className="mt-4">{children}</div>
     </section>
   );
@@ -83,11 +105,11 @@ function Cao({ children, lop = 'h-80' }: { children: ReactNode; lop?: string }) 
 
 export function BangNguong({ muc }: { muc: number | null }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
-      <h3 className="px-5 pt-5 text-[16px] font-semibold text-foreground">Ngưỡng cảnh báo hạn mức</h3>
+    <section className="overflow-hidden rounded-xl border border-[#dfe6ec] bg-white shadow-[0_1px_2px_rgba(20,40,60,0.03)]">
+      <h3 className="px-5 pt-5 text-[16px] font-semibold text-[#233543]">Ngưỡng cảnh báo hạn mức</h3>
       <table className="mt-3 w-full text-left text-[13px]">
         <thead>
-          <tr className="text-[12px] text-muted">
+          <tr className="text-[12px] text-[#7b8996]">
             <th className="px-5 py-2 font-normal">Ngưỡng</th>
             <th className="px-3 py-2 font-normal">Giá trị (%)</th>
             <th className="px-3 py-2 font-normal">Hành động</th>
@@ -121,7 +143,7 @@ export function Khoi({
   if (so.loai === 'trong') {
     return (
       <The tieu={so.tieu}>
-        <p className="text-sm text-muted">{so.dong}</p>
+        <p className="text-sm text-slate-500">{so.dong}</p>
       </The>
     );
   }
@@ -133,9 +155,9 @@ export function Khoi({
           {so.o.map((o) => {
             const mau = o.muc == null ? null : thangDiem(o.muc);
             return (
-              <div key={o.n} className="rounded-lg px-3 py-2" style={mau ? { background: mau.nen, color: mau.chu } : { background: SAC.nen }}>
-                <div className="text-xs" style={mau ? undefined : { color: SAC.muted }}>{o.n}</div>
-                <div className="so mt-1 text-[15px] font-normal" style={mau ? undefined : { color: SAC.foreground }}>{o.v}</div>
+              <div key={o.n} className="rounded-lg px-3 py-2" style={mau ? { background: mau.nen, color: mau.chu } : { background: '#f8fafc' }}>
+                <div className="text-xs" style={mau ? undefined : { color: '#64748b' }}>{o.n}</div>
+                <div className="so mt-1 text-[15px] font-normal" style={mau ? undefined : { color: '#304451' }}>{o.v}</div>
               </div>
             );
           })}
@@ -153,13 +175,13 @@ export function Khoi({
       <The tieu={so.tieu}>
         {onChu ? (
           <textarea
-            className="min-h-24 w-full rounded-lg border border-line p-2 text-sm"
+            className="min-h-24 w-full rounded-lg border border-slate-200 p-2 text-sm"
             value={so.van}
             placeholder="Nhập ghi chú. Số tiền không ghi ở đây."
             onChange={(e) => onChu(e.target.value)}
           />
         ) : (
-          <p className="whitespace-pre-wrap text-sm text-subtle">{so.van.trim() || 'Chưa ghi'}</p>
+          <p className="whitespace-pre-wrap text-sm text-slate-700">{so.van.trim() || 'Chưa ghi'}</p>
         )}
       </The>
     );
@@ -169,18 +191,18 @@ export function Khoi({
     return (
       <The tieu={so.tieu}>
         <div className={`grid gap-3 ${cols}`}>
-          {so.d.length === 0 ? <p className="text-sm text-muted">Chưa có dữ liệu.</p> : null}
+          {so.d.length === 0 ? <p className="text-sm text-slate-500">Chưa có dữ liệu.</p> : null}
           {so.d.map((t) => (
             <button
               key={t.id || t.ten}
               type="button"
-              className="rounded-lg border border-line bg-background/50 p-3 text-left transition hover:border-primary hover:bg-primary-soft/20"
+              className="rounded-lg border border-slate-200 bg-slate-50/50 p-3 text-left transition hover:border-[#1769aa] hover:bg-blue-50/20"
               onClick={() => onThe?.(t.id)}
             >
-              <div className="text-[13px] text-subtle">{t.ten}</div>
+              <div className="text-[13px] text-[#384956]">{t.ten}</div>
               <div className="mt-2 space-y-1">
                 {t.dong.map((d, di) => (
-                  <div key={d} className={`so text-xs ${di === 0 ? 'text-subtle' : 'text-primary'}`}>
+                  <div key={d} className={`so text-xs ${di === 0 ? 'text-slate-600' : 'text-[#1769aa]'}`}>
                     {d}
                   </div>
                 ))}
@@ -196,7 +218,7 @@ export function Khoi({
       <The tieu={so.tieu}>
         <div className="max-h-96 overflow-auto">
           <table className="w-full text-left text-xs">
-            <thead className="sticky top-0 bg-background text-muted">
+            <thead className="sticky top-0 bg-slate-50 text-slate-500">
               <tr>
                 {so.c.map((c) => (
                   <th key={c} className="px-2 py-1">
@@ -208,17 +230,17 @@ export function Khoi({
             <tbody>
               {so.d.length === 0 ? (
                 <tr>
-                  <td className="px-2 py-3 text-muted" colSpan={so.c.length}>
+                  <td className="px-2 py-3 text-slate-500" colSpan={so.c.length}>
                     Không có dòng.
                   </td>
                 </tr>
               ) : null}
               {so.d.map((dong, i) => (
-                <tr key={`${dong[0]}-${i}`} className="border-t border-line-soft">
+                <tr key={`${dong[0]}-${i}`} className="border-t border-slate-100">
                   {dong.map((cell, j) => (
                     <td key={j} className="so px-2 py-1">
                       {j === 0 && onMa && so.ma ? (
-                        <button type="button" className="text-primary underline" onClick={() => onMa(so.ma![i])}>
+                        <button type="button" className="text-[#1769aa] underline" onClick={() => onMa(so.ma![i])}>
                           {cell}
                         </button>
                       ) : (
@@ -238,31 +260,31 @@ export function Khoi({
     return (
       <The tieu={so.tieu} phu={so.phu}>
         {so.d.length === 0 ? (
-          <p className="text-sm text-muted">Chưa có số theo tháng.</p>
+          <p className="text-sm text-slate-500">Chưa có số theo tháng.</p>
         ) : (
           <div>
             <Cao lop="h-72">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={so.d} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={SAC.line} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="n" interval={0} angle={-30} textAnchor="end" height={60} tickMargin={6} tick={{ fontSize: 10 }} />
                   <YAxis tickFormatter={truc} tick={{ fontSize: 10 }} width={48} domain={mienY(so.d.map((d) => d.v))} />
-                  {so.d.some((d) => d.v < 0) ? <ReferenceLine y={0} stroke={SAC.muted} /> : null}
+                  {so.d.some((d) => d.v < 0) ? <ReferenceLine y={0} stroke="#94a3b8" /> : null}
                   <Tooltip content={<Tip />} />
                   <Bar dataKey="v" name="Số tiền" radius={[3, 3, 0, 0]} isAnimationActive={false}>
                     {so.d.map((d, i) => (
-                      <Cell key={d.n} fill={d.v < 0 ? SAC.bad : MAU[i % MAU.length]} />
+                      <Cell key={d.n} fill={d.v < 0 ? '#b91c1c' : MAU[i % MAU.length]} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </Cao>
             {/* Chú thích màu sắc */}
-            <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 pt-1.5 border-t border-line-soft text-xs text-subtle">
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 pt-1.5 border-t border-slate-100 text-xs text-slate-600">
               {so.d.map((d, i) => (
                 <div key={d.n} className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: d.v < 0 ? SAC.bad : MAU[i % MAU.length] }} />
-                  <span className="text-subtle">{d.n}</span>
+                  <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: d.v < 0 ? '#b91c1c' : MAU[i % MAU.length] }} />
+                  <span className="text-[#506170]">{d.n}</span>
                 </div>
               ))}
             </div>
@@ -275,29 +297,29 @@ export function Khoi({
     return (
       <The tieu={so.tieu}>
         {so.d.length === 0 ? (
-          <p className="text-sm text-muted">Chưa có số theo tháng.</p>
+          <p className="text-sm text-slate-500">Chưa có số theo tháng.</p>
         ) : (
           <Cao lop="h-72">
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               {so.tieu.includes('lũy kế') ? (
                 <AreaChart data={so.d} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={SAC.line} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="n" tick={{ fontSize: 10 }} height={32} />
                   <YAxis tickFormatter={truc} tick={{ fontSize: 10 }} width={48} domain={mienY(so.d.flatMap((d) => [d.a, d.b]))} />
                   <Tooltip content={<Tip />} />
                   <Legend verticalAlign="top" align="right" height={32} iconType="rect" wrapperStyle={{ fontSize: 12, paddingBottom: 4 }} />
-                  <Area dataKey="a" name={so.a} stroke={SAC.primary} fill={SAC.primary} fillOpacity={0.2} isAnimationActive={false} />
-                  <Area dataKey="b" name={so.b} stroke={SAC.primaryGlow} fill={SAC.primaryGlow} fillOpacity={0.15} isAnimationActive={false} />
+                  <Area dataKey="a" name={so.a} stroke="#1769aa" fill="#1769aa" fillOpacity={0.2} isAnimationActive={false} />
+                  <Area dataKey="b" name={so.b} stroke="#14b8a6" fill="#14b8a6" fillOpacity={0.15} isAnimationActive={false} />
                 </AreaChart>
               ) : (
                 <BarChart data={so.d} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={SAC.line} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="n" tick={{ fontSize: 10 }} height={32} />
                   <YAxis tickFormatter={truc} tick={{ fontSize: 10 }} width={48} domain={mienY(so.d.flatMap((d) => [d.a, d.b]))} />
                   <Tooltip content={<Tip />} />
                   <Legend verticalAlign="top" align="right" height={32} iconType="rect" wrapperStyle={{ fontSize: 12, paddingBottom: 4 }} />
-                  <Bar dataKey="a" name={so.a} fill={SAC.primary} radius={[3, 3, 0, 0]} isAnimationActive={false} />
-                  <Bar dataKey="b" name={so.b} fill={SAC.primaryGlow} radius={[3, 3, 0, 0]} isAnimationActive={false} />
+                  <Bar dataKey="a" name={so.a} fill="#1769aa" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+                  <Bar dataKey="b" name={so.b} fill="#14b8a6" radius={[3, 3, 0, 0]} isAnimationActive={false} />
                 </BarChart>
               )}
             </ResponsiveContainer>
@@ -311,7 +333,7 @@ export function Khoi({
     return (
       <The tieu={so.tieu}>
         {data.length === 0 ? (
-          <p className="text-sm text-muted">Chưa có số.</p>
+          <p className="text-sm text-slate-500">Chưa có số.</p>
         ) : (
           <Cao>
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -334,7 +356,7 @@ export function Khoi({
     return (
       <The tieu={so.tieu}>
         {so.d.length === 0 ? (
-          <p className="text-sm text-muted">Chưa có thành phần điểm.</p>
+          <p className="text-sm text-slate-500">Chưa có thành phần điểm.</p>
         ) : (
           <Cao lop="h-64">
             <ResponsiveContainer>
@@ -342,7 +364,7 @@ export function Khoi({
                 <PolarGrid />
                 <PolarAngleAxis dataKey="n" tick={{ fontSize: 10 }} />
                 <PolarRadiusAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
-                <Radar dataKey="v" name="Điểm" stroke={SAC.primary} fill={SAC.primary} fillOpacity={0.35} isAnimationActive={false} />
+                <Radar dataKey="v" name="Điểm" stroke="#1769aa" fill="#1769aa" fillOpacity={0.35} isAnimationActive={false} />
               </RadarChart>
             </ResponsiveContainer>
           </Cao>
@@ -352,7 +374,7 @@ export function Khoi({
             const bac = Math.min(5, Math.max(1, Math.round(d.v || 0)));
             const mau = d.v > 0 ? thangDiem(bac) : null;
             return (
-              <li key={d.n} className="flex items-center justify-between gap-2 rounded px-2 py-1" style={mau ? { background: mau.nen, color: mau.chu } : { background: SAC.nen, color: SAC.muted }}>
+              <li key={d.n} className="flex items-center justify-between gap-2 rounded px-2 py-1" style={mau ? { background: mau.nen, color: mau.chu } : { background: '#f8fafc', color: '#64748b' }}>
                 <span>{d.n}</span>
                 <span className="so">{d.hien}</span>
               </li>
@@ -366,7 +388,7 @@ export function Khoi({
     <The tieu={so.tieu} phu={so.phu}>
       <div className="grid gap-4 lg:grid-cols-2">
         <div>
-          <div className="mb-1 text-xs text-muted">{so.trai.tieu}</div>
+          <div className="mb-1 text-xs text-slate-500">{so.trai.tieu}</div>
           <Cao>
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <PieChart>
@@ -382,7 +404,7 @@ export function Khoi({
           </Cao>
         </div>
         <div>
-          <div className="mb-1 text-xs text-muted">{so.phai.tieu}</div>
+          <div className="mb-1 text-xs text-slate-500">{so.phai.tieu}</div>
           <Cao lop="h-64">
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <PieChart>
@@ -399,5 +421,88 @@ export function Khoi({
         </div>
       </div>
     </The>
+  );
+}
+
+export function DanhSachKeHoachMua({ boLoc }: { boLoc?: BoLocThoiGian } = {}) {
+  const khoang = boLoc ? layKhoangThoiGian(boLoc) : null;
+  return (
+    <div className="rounded-xl border border-[#dfe6ec] bg-white p-4 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5 mb-3">
+        <div>
+          <h3 className="text-[16px] font-semibold text-[#233543]">Kế hoạch mua theo nhóm</h3>
+          <p className="text-xs text-slate-500">Dạng danh sách tiến độ thực hiện và giải ngân ngân sách theo từng nhóm hàng</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {khoang?.laLoc && (
+            <span className="text-xs text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
+              Kỳ: {khoang.nhan}
+            </span>
+          )}
+          <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+            4 nhóm vật tư chính
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {NHOM_MUA.map((g) => {
+          const tyLeVe = g.keHoach > 0 ? (g.ve / g.keHoach) * 100 : 0;
+          const tyLeDung = g.nganSach > 0 ? (g.dung / g.nganSach) * 100 : 0;
+          return (
+            <div
+              key={g.n}
+              className="rounded-lg border border-slate-200/80 bg-slate-50/50 p-3.5 hover:border-[#1769aa]/60 transition"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-normal text-slate-800">{g.n}</span>
+                <span className="text-xs text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                  Nhu cầu: {g.nhuCau} tỷ
+                </span>
+              </div>
+
+              {/* Progress 1: Tiến độ đã về / Kế hoạch */}
+              <div className="space-y-1 mb-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500">Đã về / Kế hoạch:</span>
+                  <span className="text-[#384956]">
+                    {g.ve} / {g.keHoach} tỷ ({tyLeVe.toFixed(1)}%)
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-[#1769aa] transition-all"
+                    style={{ width: `${Math.min(100, tyLeVe)}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Progress 2: Đã dùng / Ngân sách */}
+              <div className="space-y-1 mb-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500">Ngân sách đã dùng:</span>
+                  <span className="text-[#384956]">
+                    {g.dung} / {g.nganSach} tỷ ({tyLeDung.toFixed(1)}%)
+                  </span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      tyLeDung > 100 ? 'bg-rose-500' : 'bg-emerald-500'
+                    }`}
+                    style={{ width: `${Math.min(100, tyLeDung)}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 text-[11px] text-slate-500">
+                <span>Đã duyệt: <span className="text-[#506170]">{g.duyet} tỷ</span></span>
+                <span>Còn lại về: <span className="text-[#1769aa]">{Math.max(0, g.keHoach - g.ve)} tỷ</span></span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

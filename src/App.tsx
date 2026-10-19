@@ -4,15 +4,12 @@ import type { KetQua } from './lib/metrics';
 import { parseArrayBuffer } from './lib/parseWorkbook';
 import { docTepSo, luuTepSo } from './luuSo';
 import { ngay } from './format';
-import { ChuaNap, ManSapCo, ThanhBen, ThanhTab, laSapCo, tenMan, type ManId } from './khung';
-import { ManAr, ManKeHoach, ManKhach, ManNap } from './man';
-import { ManTongQuan } from './manTongQuan';
-import { ManTinDung, ManTuoiNo } from './manPhanTich';
-import { ManCanhBaoKanban, ManDanhSachKhach } from './manKhachHang';
-import { ManHoSoKhach } from './manHoSo';
+import { ChuaNap, ThanhBen, laKhungTrong, tenMan, type ManId } from './khung';
+import { ManAr, ManBieu, ManCanhBao, ManHoSo, ManKeHoach, ManKhach, ManNap, ManTong } from './man';
 import { ManMobileApp } from './manMobile';
-import { SoanIn, type MauId } from './soan';
-
+import { ManBo } from './manKhac';
+import { SoanIn } from './soan';
+import type { MauId } from './mauIn';
 import { LOC_RONG, TAY_RONG, chonTu, docTay, luuTay, type Loc, type NhomCanhBaoId, type Tay } from './soLieu';
 import {
   type BoLocThoiGian,
@@ -21,26 +18,18 @@ import {
   apDungBoLocThoiGian,
 } from './locThoiGian';
 
-type TabTong = 'danhmuc' | 'tuan' | 'tc1' | 'tc2';
-const TAB_TONG: { id: TabTong; ten: string }[] = [
-  { id: 'danhmuc', ten: 'Danh mục' },
-  { id: 'tuan', ten: 'Theo tuần' },
-  { id: 'tc1', ten: 'TC1' },
-  { id: 'tc2', ten: 'TC2' },
-];
-type TabKhach = 'ds' | 'kehoach' | 'them';
-const TAB_KHACH: { id: TabKhach; ten: string }[] = [
-  { id: 'ds', ten: 'Danh sách' },
-  { id: 'kehoach', ten: 'Kế hoạch tuần' },
-  { id: 'them', ten: 'Thêm tay' },
-];
-
-function mauTuMan(man: ManId, tab: TabTong, hoSo: boolean): MauId {
+function mauTuMan(man: ManId, ar: 'tuan' | 'tc1' | 'tc2', hoSo: boolean): MauId {
   if (hoSo || man === 'khach') return 'khach';
-  if (man === 'tongquan' && tab === 'tuan') return 'tuan';
-  if (man === 'tongquan') return 'tc1';
+  if (man === 'tongquan' || (man === 'ar' && ar === 'tc1')) return 'tc1';
   return 'tuan';
 }
+
+const MAN_BO = new Set<ManId>([
+  'ap', 'ap_ncc', 'ap_tuoi', 'ap_lich', 'ap_pt', 'ap_ck',
+  'tien', 'vi_the', 'dong_tien', 'fc13', 'lech', 'kich_ban',
+  'nhu_cau', 'kh_mua', 'po', 'tien_do', 'ngan_sach', 'lien_ap',
+  'cb_ap', 'cb_tien', 'cb_mua', 'phieuthu', 'socal', 'khoaky',
+]);
 
 export default function App() {
   const [cheDo, setCheDo] = useState<'web' | 'app'>(() => {
@@ -55,8 +44,7 @@ export default function App() {
   const [moPhongKhung, setMoPhongKhung] = useState(false);
   const [ky, setKy] = useState<KetQua | null>(null);
   const [man, setMan] = useState<ManId>('tongquan');
-  const [ar, setAr] = useState<TabTong>('danhmuc');
-  const [tabKhach, setTabKhach] = useState<TabKhach>('ds');
+  const [ar, setAr] = useState<'tuan' | 'tc1' | 'tc2'>('tuan');
   const [loc, setLoc] = useState<Loc>(LOC_RONG);
   const [tay, setTay] = useState<Tay>(TAY_RONG);
   const [ma, setMa] = useState<string | null>(null);
@@ -138,7 +126,7 @@ export default function App() {
       setInMo(true);
       return;
     }
-    if (id !== 'canhbao') {
+    if (id !== 'cb_ar') {
       setNhomCanhBaoChon(null);
     }
     setMan(id);
@@ -168,13 +156,13 @@ export default function App() {
   // Chế độ Bản App (Mobile)
   if (cheDo === 'app') {
     return (
-      <div className="flex min-h-screen flex-col items-center bg-background">
-        <div className="z-50 hidden w-full items-center justify-between border-b border-line bg-white px-5 py-3 text-[12px] text-subtle md:flex">
+      <div className="flex min-h-screen flex-col items-center bg-[#f5f7fa]">
+        <div className="z-50 hidden w-full items-center justify-between border-b border-[#dfe6ec] bg-white px-5 py-3 text-[12px] text-[#506170] md:flex">
           <div className="flex items-center gap-2.5">
-            <span className="text-foreground">Tân Phú Cường</span>
-            <span className="text-line">·</span>
+            <span className="text-[#17212b]">Tân Phú Cường</span>
+            <span className="text-[#c5d0d8]">·</span>
             <span>Đang xem bản App</span>
-            <span className="rounded-md bg-primary-soft px-2 py-1 text-[11px] text-primary">
+            <span className="rounded-md bg-[#e8f2fb] px-2 py-1 text-[11px] text-[#1769aa]">
               {moPhongKhung ? 'Khung điện thoại' : 'Toàn màn hình'}
             </span>
           </div>
@@ -182,16 +170,16 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-line bg-white px-3 text-[12px] text-subtle"
+              className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-[#dfe6ec] bg-white px-3 text-[12px] text-[#506170]"
               onClick={() => setMoPhongKhung((v) => !v)}
               title="Chuyển đổi giữa chế độ khung điện thoại hoặc tràn viền màn hình"
             >
-              <Smartphone className="size-3.5 text-primary-glow" />
+              <Smartphone className="size-3.5 text-[#5c8db7]" />
               <span>{moPhongKhung ? 'Xem tràn viền' : 'Khung điện thoại'}</span>
             </button>
             <button
               type="button"
-              className="flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-primary px-3 text-[12px] text-white hover:bg-primary-dark"
+              className="flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[#1769aa] px-3 text-[12px] text-white hover:bg-[#125b92]"
               onClick={() => {
                 setCheDo('web');
                 try {
@@ -278,20 +266,20 @@ export default function App() {
 
   // Chế độ Bản Web (Desktop)
   return (
-    <div className="flex h-screen bg-background text-foreground">
+    <div className="flex h-screen bg-[#f5f7fa] text-[#17212b]">
       <ThanhBen man={inMo ? 'baocao' : hoSo ? 'khach' : man} chon={chonMan} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className={`flex flex-col gap-3 border-b border-line bg-white/95 px-5 py-3 backdrop-blur md:px-8 xl:flex-row xl:items-center xl:justify-between ${inMo ? 'hidden' : ''}`}>
+        <header className={`flex flex-col gap-3 border-b border-[#dfe6ec] bg-white/95 px-5 py-3 backdrop-blur md:px-8 xl:flex-row xl:items-center xl:justify-between ${inMo ? 'hidden' : ''}`}>
           <div className="min-w-0">
-            <div className="truncate text-[21px] font-semibold tracking-[-0.03em] text-foreground">
+            <div className="truncate text-[21px] font-semibold tracking-[-0.03em] text-[#17212b]">
               {hoSo ? 'Hồ sơ khách hàng' : tenMan(man)}
-              {!hoSo && laSapCo(man) ? (
-                <span className="ml-2 align-middle rounded-md bg-risk-watch-soft px-2 py-0.5 text-[11px] font-normal tracking-normal text-risk-watch">
-                  Sắp có
+              {!hoSo && laKhungTrong(man) ? (
+                <span className="ml-2 align-middle rounded-md bg-[#fff6e5] px-2 py-0.5 text-[11px] font-normal tracking-normal text-[#b87b20]">
+                  Sắp có · số minh họa
                 </span>
               ) : null}
             </div>
-            <div className="text-[12px] text-muted">
+            <div className="text-[12px] text-[#8593a1]">
               {ky
                 ? `Chốt ${ngay(kyHienThi?.meta.ngayChot || ky.meta.ngayChot)} · ${kyHienThi?.meta.tuanNhan || ky.meta.tuanNhan}`
                 : dangMo
@@ -306,10 +294,10 @@ export default function App() {
               locThoiGian={locThoiGian}
               setLocThoiGian={handleSetLocThoiGian}
             />
-            <div className="flex items-center rounded-lg border border-line bg-white p-0.5 text-[12px]">
+            <div className="flex items-center rounded-lg border border-[#dfe6ec] bg-white p-0.5 text-[12px]">
               <button
                 type="button"
-                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-primary-soft px-3 py-1.5 text-primary"
+                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-[#e8f2fb] px-3 py-1.5 text-[#1769aa]"
                 onClick={() => {
                   setCheDo('web');
                   try {
@@ -322,7 +310,7 @@ export default function App() {
               </button>
               <button
                 type="button"
-                className="flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-muted hover:text-foreground"
+                className="flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-[#697887] hover:text-[#253746]"
                 onClick={() => {
                   setCheDo('app');
                   try {
@@ -337,7 +325,7 @@ export default function App() {
 
             <button
               type="button"
-              className="flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-primary px-3 text-[12px] text-white hover:bg-primary-dark"
+              className="flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[#1769aa] px-3 text-[12px] text-white hover:bg-[#125b92]"
               onClick={() => moBaoCao(mauTuMan(man, ar, hoSo))}
             >
               Xuất PDF
@@ -362,50 +350,46 @@ export default function App() {
                   }}
                 />
               ) : null}
-              {laSapCo(man) ? <ManSapCo id={man} /> : null}
-              {man !== 'nap' && !laSapCo(man) && man !== 'tongquan' && !coSo && !hoSo ? (
+              {man !== 'nap' && !MAN_BO.has(man) && man !== 'tongquan' && !coSo && !hoSo ? (
                 <ChuaNap chu={dangMo ? 'Đang mở sổ…' : 'Chưa nạp sổ'} />
               ) : null}
-              {man === 'tongquan' && !hoSo ? (
-                <div className="space-y-4">
-                  {coSo ? <ThanhTab tab={ar} setTab={setAr} ds={TAB_TONG} /> : null}
-                  {ar === 'danhmuc' || !coSo ? (
-                    <ManTongQuan
-                      chon={chonKy}
-                      onMoCanhBao={(nhomId) => {
-                        setNhomCanhBaoChon(nhomId);
-                        setMan('canhbao');
-                        setHoSo(false);
-                      }}
-                      onMa={moHoSo}
-                      onMoMan={(id) => {
-                        setMan(id);
-                        setHoSo(false);
-                      }}
-                    />
-                  ) : chonKy && chonLoc ? (
-                    <ManAr tab={ar} chonKy={chonKy} chonLoc={chonLoc} loc={loc} setLoc={setLoc} sales={sales} suaTay={suaTay} />
-                  ) : null}
-                </div>
+              {man !== 'nap' && !hoSo && man === 'tongquan' ? (
+                <ManTong
+                  chon={chonKy}
+                  boLoc={locThoiGian}
+                  onMoCanhBao={(nhomId) => {
+                    setNhomCanhBaoChon(nhomId);
+                    setMan('cb_ar');
+                    setHoSo(false);
+                  }}
+                  onMa={moHoSo}
+                  onMoTc1={() => moBaoCao('tc1')}
+                />
+              ) : null}
+              {coSo && chonKy && chonLoc && man === 'ar' && !hoSo ? (
+                <ManAr tab={ar} setTab={setAr} chonKy={chonKy} chonLoc={chonLoc} loc={loc} setLoc={setLoc} sales={sales} suaTay={suaTay} />
               ) : null}
               {coSo && chonLoc && man === 'khach' && !hoSo ? (
-                <div className="space-y-4">
-                  <ThanhTab tab={tabKhach} setTab={setTabKhach} ds={TAB_KHACH} />
-                  {tabKhach === 'ds' ? <ManDanhSachKhach chon={chonLoc} loc={loc} setLoc={setLoc} sales={sales} moHoSo={moHoSo} /> : null}
-                  {tabKhach === 'kehoach' ? <ManKeHoach chon={chonLoc} suaTay={suaTay} /> : null}
-                  {tabKhach === 'them' ? <ManKhach chonLoc={chonLoc} loc={loc} setLoc={setLoc} sales={sales} moHoSo={moHoSo} suaTay={suaTay} /> : null}
-                </div>
+                <ManKhach chonLoc={chonLoc} loc={loc} setLoc={setLoc} sales={sales} moHoSo={moHoSo} suaTay={suaTay} />
               ) : null}
               {coSo && chonKy && hoSo ? (
-                <ManHoSoKhach chon={chonKy} suaTay={suaTay} veDanhSach={() => setHoSo(false)} />
+                <div className="space-y-3">
+                  <button type="button" className="text-[12px] text-[#1769aa]" onClick={() => setHoSo(false)}>Về danh sách</button>
+                  <ManHoSo chon={chonKy} suaTay={suaTay} />
+                </div>
               ) : null}
               {coSo && chonLoc && !hoSo && man === 'tuoi' ? (
-                <ManTuoiNo chon={chonLoc} loc={loc} setLoc={setLoc} sales={sales} onMa={moHoSo} />
+                <ManBieu tieu="Tuổi nợ" ids={['tuoi-kpi', 'tuoi-cot']} chon={chonLoc} loc={loc} setLoc={setLoc} sales={sales} />
               ) : null}
-              {coSo && chonLoc && !hoSo && man === 'tindung' ? (
-                <ManTinDung chon={chonLoc} loc={loc} setLoc={setLoc} sales={sales} onMa={moHoSo} />
+              {coSo && chonLoc && !hoSo && man === 'thuhoi' ? (
+                <ManBieu tieu="Phân tích thu hồi" ids={['th-kpi', 'th-cot', 'th-bang']} chon={chonLoc} loc={loc} setLoc={setLoc} sales={sales} />
               ) : null}
-              {coSo && chonLoc && !hoSo && man === 'canhbao' ? <ManCanhBaoKanban chon={chonLoc} suaTay={suaTay} moHoSo={moHoSo} nhomChonBanDau={nhomCanhBaoChon} /> : null}
+              {coSo && chonLoc && !hoSo && man === 'ruiro' ? (
+                <ManBieu tieu="Rủi ro và hạn mức" ids={['rr-hm', 'rr-noxau', 'rr-top']} chon={chonLoc} loc={loc} setLoc={setLoc} sales={sales} onMa={moHoSo} />
+              ) : null}
+              {coSo && chonLoc && !hoSo && man === 'kehoach' ? <ManKeHoach chon={chonLoc} suaTay={suaTay} /> : null}
+              {coSo && chonLoc && !hoSo && man === 'cb_ar' ? <ManCanhBao chon={chonLoc} moHoSo={moHoSo} nhomChonBanDau={nhomCanhBaoChon} /> : null}
+              {!hoSo && MAN_BO.has(man) ? <ManBo id={man} coSoThu={coSo} /> : null}
             </div>
           )}
         </main>

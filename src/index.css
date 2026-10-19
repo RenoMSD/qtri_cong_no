@@ -1,77 +1,14 @@
 @import "tailwindcss";
 
-/* Design system: Indigo (Modern FinTech) + màu trạng thái chữ đậm trên nền nhạt. Mã màu giữ đồng bộ với src/mauSac.ts (dùng cho biểu đồ). */
-@theme {
-  --font-sans: 'Be Vietnam Pro', Arial, Helvetica, sans-serif;
-
-  --color-primary: #4f46e5;
-  --color-primary-glow: #818cf8;
-  --color-primary-soft: #eef2ff;
-  --color-primary-dark: #4338ca;
-
-  --color-background: #f8fafc;
-  --color-card: #ffffff;
-  --color-line: #e2e8f0;
-  --color-line-soft: #f1f5f9;
-  --color-foreground: #0f172a;
-  --color-subtle: #475569;
-  --color-muted: #64748b;
-
-  --color-sidebar: #0f172a;
-  --color-sidebar-fg: #cbd5e1;
-
-  --color-risk-safe: #16a34a;
-  --color-risk-safe-soft: #dcfce7;
-  --color-risk-watch: #d97706;
-  --color-risk-watch-soft: #fef3c7;
-  --color-risk-overdue: #ea580c;
-  --color-risk-overdue-soft: #ffedd5;
-  --color-risk-bad: #dc2626;
-  --color-risk-bad-soft: #fee2e2;
-  --color-risk-info: #2563eb;
-  --color-risk-info-soft: #dbeafe;
-
-  /* 11 nhóm tuổi nợ, theo thứ tự BUCKET_KEYS */
-  --color-aging-1: #10b981;
-  --color-aging-2: #06b6d4;
-  --color-aging-3: #3b82f6;
-  --color-aging-4: #a3e635;
-  --color-aging-5: #facc15;
-  --color-aging-6: #f59e0b;
-  --color-aging-7: #fb923c;
-  --color-aging-8: #f97316;
-  --color-aging-9: #ef4444;
-  --color-aging-10: #dc2626;
-  --color-aging-11: #991b1b;
-
-  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 14px -6px rgb(15 23 42 / 0.08);
-  --shadow-elegant: 0 10px 30px -12px rgb(79 70 229 / 0.25);
-  --radius-the: 0.75rem;
-
-  --animate-fade-up: fade-up 0.35s ease-out both;
-  @keyframes fade-up {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: none; }
-  }
-}
-
 body {
   margin: 0;
-  background: var(--color-background);
-  color: var(--color-foreground);
-  font-family: var(--font-sans);
+  background: #f5f7fa;
+  color: #17212b;
+  font-family: Arial, Helvetica, sans-serif;
   font-weight: 400;
 }
 
 .so {
   font-variant-numeric: tabular-nums;
   font-weight: 400;
-}
-
-.nen-sidebar {
-  background: linear-gradient(180deg, #111a2e 0%, #0f172a 50%, #0b1120 100%);
-}
-
-.nen-hero {
-  background: linear-gradient(120deg, var(--color-primary-dark) 0%, var(--color-primary) 55%, var(--color-primary-glow) 130%);
 }

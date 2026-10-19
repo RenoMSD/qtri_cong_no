@@ -195,7 +195,7 @@ export default function App() {
 
         {inMo ? (
           <div className="w-full flex-1">
-            <SoanIn ky={ky} tay={tay} mauBanDau={mauIn} moHoSo={moHoSo} dong={dongBaoCao} />
+            <SoanIn ky={ky} tay={tay} suaTay={suaTay} mauBanDau={mauIn} maBanDau={ma} moHoSo={moHoSo} dong={dongBaoCao} />
           </div>
         ) : moPhongKhung ? (
           /* Phone Frame Mockup for desktop preview */
@@ -335,7 +335,7 @@ export default function App() {
 
         <main className={`min-h-0 flex-1 ${inMo ? 'overflow-hidden' : 'overflow-auto'}`}>
           {inMo ? (
-            <SoanIn ky={ky} tay={tay} mauBanDau={mauIn} moHoSo={moHoSo} dong={dongBaoCao} />
+            <SoanIn ky={ky} tay={tay} suaTay={suaTay} mauBanDau={mauIn} maBanDau={ma} moHoSo={moHoSo} dong={dongBaoCao} />
           ) : (
             <div className="mx-auto max-w-[1600px] px-5 py-6 md:px-8">
               {man === 'nap' ? (

@@ -35,6 +35,7 @@ export type Tay = {
   tuanNay: string;
   tuanSau: string;
   them: { maKH: string; ten: string }[];
+  deXuat: string[];
 };
 
 export const LOC_RONG: Loc = { sale: 'ALL', hang: 'ALL', q: '' };
@@ -47,6 +48,7 @@ export const TAY_RONG: Tay = {
   tuanNay: '',
   tuanSau: '',
   them: [],
+  deXuat: [],
 };
 
 export function docTay(checksum: string): Tay {
@@ -54,7 +56,7 @@ export function docTay(checksum: string): Tay {
     const raw = localStorage.getItem(`newcredit:${checksum}`);
     if (!raw) return TAY_RONG;
     const x = JSON.parse(raw) as Tay;
-    return { ...TAY_RONG, ...x, ten: x.ten ?? {}, ghi: x.ghi ?? {}, keHoach: x.keHoach ?? {}, nhatKy: x.nhatKy ?? {}, them: x.them ?? [] };
+    return { ...TAY_RONG, ...x, ten: x.ten ?? {}, ghi: x.ghi ?? {}, keHoach: x.keHoach ?? {}, nhatKy: x.nhatKy ?? {}, them: x.them ?? [], deXuat: x.deXuat ?? [] };
   } catch {
     return TAY_RONG;
   }

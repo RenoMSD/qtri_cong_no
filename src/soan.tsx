@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { taiXuong } from './pdf';
-import { xuatMau } from './pdfMau';
 import type { KetQua } from './lib/metrics';
 import { KHUNG, MAU_TEN, kiemKhung, type MauId } from './mauIn';
 import {
@@ -54,6 +52,8 @@ export function SoanIn({
     setDang(phan);
     setLoi('');
     try {
+      // Nạp pdf-lib khi bấm xuất, không tải sẵn cùng trang
+      const [{ xuatMau }, { taiXuong }] = await Promise.all([import('./pdfMau'), import('./pdf')]);
       const { bytes, tenFile } = await xuatMau(du, phan);
       taiXuong(bytes, tenFile);
     } catch (e) {
@@ -64,7 +64,7 @@ export function SoanIn({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-[#f5f7fa]" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-[#f5f7fa]" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
       <div className="flex min-h-[72px] flex-wrap items-center gap-2 border-b border-[#dfe6ec] bg-white px-5 py-3">
         <h2 className="text-[16px] font-semibold text-[#233543]">Mẫu báo cáo</h2>
         {MAU_DS.map((id) => (

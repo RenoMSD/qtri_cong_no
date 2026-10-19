@@ -112,8 +112,9 @@ export function ManMobileApp({
       k,
       n: BUCKET_LABEL[k],
       v: tong.aging[k] || 0,
-    })).filter((x) => x.v > 0);
+    })).filter((x) => x.v !== 0);
   }, [tong]);
+  const duLieuTuoiVe = useMemo(() => duLieuTuoiDuong.filter((x) => x.v > 0), [duLieuTuoiDuong]);
 
   const danhSachKhachLoc = useMemo(() => {
     if (!chon) return [];
@@ -367,7 +368,7 @@ export function ManMobileApp({
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
-                              data={duLieuTuoiDuong}
+                              data={duLieuTuoiVe}
                               dataKey="v"
                               nameKey="n"
                               innerRadius={45}
@@ -375,7 +376,7 @@ export function ManMobileApp({
                               paddingAngle={2}
                               isAnimationActive={false}
                             >
-                              {duLieuTuoiDuong.map((d) => (
+                              {duLieuTuoiVe.map((d) => (
                                 <Cell key={d.k} fill={MAU_BUCKET[d.k] || '#1769aa'} />
                               ))}
                             </Pie>

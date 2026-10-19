@@ -544,8 +544,8 @@ export const LOAI_TEN: Record<LoaiDash, string> = {
   ruiro: 'Rủi ro và hạn mức',
   tongquan: 'Tổng quan',
   bgd: 'Báo cáo BGĐ',
-  ap: 'Dashboard phải trả',
-  tien: 'Dashboard dòng tiền',
+  ap: 'Tổng quan phải trả',
+  tien: 'Tổng quan dòng tiền',
   mua: 'Kế hoạch mua hàng',
 };
 

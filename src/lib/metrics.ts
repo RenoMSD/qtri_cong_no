@@ -551,6 +551,16 @@ export function lapKy(dauVao: DauVao): KetQua {
     const cts = byMa.get(ma) ?? [];
     const dm = dauVao.danhMuc.get(ma);
     const { hmtd, han } = hmHieuLuc(dm);
+    const hanDinh = han && han > 0 ? han : hanTuChungTu(cts);
+    // Chứng từ không ghi hạn thanh toán: dùng hạn của khách, tránh coi là quá hạn ngay từ ngày hóa đơn
+    if (hanDinh != null) {
+      for (const ct of cts) {
+        if (ct.hanTT != null) continue;
+        ct.hanTT = Math.round(hanDinh);
+        ct.soNgayQH = tinhSoNgayQH(ct);
+        ct.bucket = bucketCua(ct.soNgayQH, ct.duCuoiKy);
+      }
+    }
     const aging = emptyAging();
     let duDauKy = 0;
     let tienNo = 0;
@@ -585,7 +595,6 @@ export function lapKy(dauVao: DauVao): KetQua {
     if (dm?.email.trim()) email = dm.email.trim();
     const doanhSo = dauVao.doanhSo.get(ma) ?? 0;
     const dso365 = doanhSo > 0 ? (duNo / doanhSo) * 365 : null;
-    const hanDinh = han && han > 0 ? han : hanTuChungTu(cts);
     draft.push({
       maKH: ma,
       tenKH: dm?.tenKH.trim() ?? '',

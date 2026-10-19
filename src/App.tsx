@@ -4,7 +4,7 @@ import type { KetQua } from './lib/metrics';
 import { parseArrayBuffer } from './lib/parseWorkbook';
 import { docTepSo, luuTepSo } from './luuSo';
 import { ngay } from './format';
-import { ChuaNap, ThanhBen, tenMan, type ManId } from './khung';
+import { ChuaNap, ThanhBen, laKhungTrong, tenMan, type ManId } from './khung';
 import { ManAr, ManBieu, ManCanhBao, ManHoSo, ManKeHoach, ManKhach, ManNap, ManTong } from './man';
 import { ManMobileApp } from './manMobile';
 import { ManBo } from './manKhac';
@@ -34,9 +34,10 @@ const MAN_BO = new Set<ManId>([
 export default function App() {
   const [cheDo, setCheDo] = useState<'web' | 'app'>(() => {
     try {
+      // Màn hình điện thoại luôn mở bản App: bản Web không đủ chỗ cho sidebar
+      if (typeof window !== 'undefined' && window.innerWidth < 768) return 'app';
       const saved = localStorage.getItem('che_do_giao_dien');
       if (saved === 'app' || saved === 'web') return saved;
-      if (typeof window !== 'undefined' && window.innerWidth < 768) return 'app';
     } catch {}
     return 'web';
   });
@@ -272,6 +273,11 @@ export default function App() {
           <div className="min-w-0">
             <div className="truncate text-[21px] font-semibold tracking-[-0.03em] text-[#17212b]">
               {hoSo ? 'Hồ sơ khách hàng' : tenMan(man)}
+              {!hoSo && laKhungTrong(man) ? (
+                <span className="ml-2 align-middle rounded-md bg-[#fff6e5] px-2 py-0.5 text-[11px] font-normal tracking-normal text-[#b87b20]">
+                  Sắp có · số minh họa
+                </span>
+              ) : null}
             </div>
             <div className="text-[12px] text-[#8593a1]">
               {ky

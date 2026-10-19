@@ -30,8 +30,7 @@ import {
 import { parseArrayBuffer } from './lib/parseWorkbook';
 import { ngay, pct, so1, soLinh, ty } from './format';
 import { ChuaSo, LocBar, tenMan, type ManId } from './khung';
-import { CHI_13, CHU_TEST, NGAY_TUAN, THU_13, TUAN_13, soBoTest } from './boTest';
-import { DanhSachKeHoachMua, Khoi } from './khoi';
+import { Khoi } from './khoi';
 import type { BoLocThoiGian } from './locThoiGian';
 import { layKhoangThoiGian } from './locThoiGian';
 import { bonNhomCanhBao, cauQuaHanTuan, chuoi8Tuan, namKhachChiem, soKhoi, tenKhach, type Chon, type CotKhach, type Loc, type NhomCanhBaoId, type Tay } from './soLieu';
@@ -84,7 +83,7 @@ export function ManAr({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Tieu tieu="AR Dashboard" phu={tab === 'tuan' ? tuan : `Chốt ${ngay(ky.meta.ngayChot)} · ${ky.nhanDiem}`} />
+        <Tieu tieu="Tổng quan phải thu" phu={tab === 'tuan' ? tuan : `Chốt ${ngay(ky.meta.ngayChot)} · ${ky.nhanDiem}`} />
         <div className="flex gap-1 rounded-lg bg-slate-100 p-1 text-sm">
           {(['tuan', 'tc1', 'tc2'] as const).map((t) => (
             <button key={t} type="button" className={`rounded-md px-3 py-1 ${tab === t ? 'bg-white text-[#1769aa]' : 'text-slate-600'}`} onClick={() => setTab(t)}>
@@ -189,11 +188,53 @@ export function ManKhach({
 export function ManHoSo({ chon, suaTay }: { chon: Chon; suaTay: (t: Tay) => void }) {
   const ma = chon.ma;
   const [dong, setDong] = useState('');
+  const [dangXuat, setDangXuat] = useState<'doichieu' | 'nhacno' | null>(null);
+  const [loiXuat, setLoiXuat] = useState('');
   if (!ma) return <p className="text-sm text-slate-500">Chọn một khách từ danh sách.</p>;
   const tay = chon.tay;
+  const kh = ma;
+
+  async function xuatVanBan(loai: 'doichieu' | 'nhacno') {
+    setDangXuat(loai);
+    setLoiXuat('');
+    try {
+      // Nạp pdf-lib khi bấm xuất, không tải sẵn cùng trang
+      const [vb, { taiXuong }] = await Promise.all([import('./pdfThu'), import('./pdf')]);
+      const xuat = loai === 'doichieu' ? vb.xuatBienBanDoiChieu : vb.xuatThuNhacNo;
+      const { bytes, tenFile } = await xuat(kh, tenKhach(kh, tay), chon.ky.meta);
+      taiXuong(bytes, tenFile);
+    } catch (e) {
+      setLoiXuat(e instanceof Error ? e.message : 'Không xuất được PDF.');
+    } finally {
+      setDangXuat(null);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <Tieu tieu={`${ma.maKH} · ${tenKhach(ma, tay)}`} phu={chon.ky.nhanDiem} />
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={dangXuat !== null}
+          className="flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[#1769aa] px-3 text-[12px] text-white hover:bg-[#125b92] disabled:opacity-40"
+          onClick={() => xuatVanBan('doichieu')}
+        >
+          <FileText className="size-3.5" />
+          {dangXuat === 'doichieu' ? 'Đang xuất…' : 'Biên bản đối chiếu công nợ'}
+        </button>
+        <button
+          type="button"
+          disabled={dangXuat !== null || ma.quaHan <= 0}
+          title={ma.quaHan <= 0 ? 'Khách không có khoản quá hạn' : undefined}
+          className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-[#1769aa] px-3 text-[12px] text-[#1769aa] hover:bg-[#e8f2fb] disabled:cursor-not-allowed disabled:opacity-40"
+          onClick={() => xuatVanBan('nhacno')}
+        >
+          <FileText className="size-3.5" />
+          {dangXuat === 'nhacno' ? 'Đang xuất…' : 'Thư nhắc thanh toán'}
+        </button>
+        {loiXuat ? <span className="text-[12px] text-red-700">{loiXuat}</span> : null}
+      </div>
       <div className="grid gap-4 xl:grid-cols-2">
         <Khoi so={soKhoi('hs-diem', chon)} />
         <Khoi so={soKhoi('hs-hm', chon)} />
@@ -473,14 +514,6 @@ function TipTuan({ active, payload, label }: { active?: boolean; payload?: Array
   );
 }
 
-function cauNetThap(): string {
-  let i = 0;
-  for (let k = 1; k < THU_13.length; k += 1) {
-    if (THU_13[k] - CHI_13[k] < THU_13[i] - CHI_13[i]) i = k;
-  }
-  return `Tuần Net thấp nhất là ${TUAN_13[i]} ${NGAY_TUAN[i]}: ${ty((THU_13[i] - CHI_13[i]) * 1e9)}.`;
-}
-
 function TipKhach({ active, payload }: { active?: boolean; payload?: Array<{ payload?: CotKhach }> }) {
   const row = payload?.[0]?.payload;
   if (!active || !row) return null;
@@ -512,12 +545,14 @@ export function ManTong({
   const nhomCanhBao = chon ? bonNhomCanhBao(chon.list, chon.tay) : [];
   const topKhach = chon ? topRuiRo(chon.list, 10) : [];
   const duLieuTuoiDuong = tong
-    ? BUCKET_KEYS.filter((k) => tong.aging[k] > 0).map((k) => ({
+    ? BUCKET_KEYS.filter((k) => tong.aging[k] !== 0).map((k) => ({
         k,
         n: BUCKET_LABEL[k],
         v: tong.aging[k],
       }))
     : [];
+  // Biểu đồ tròn không vẽ được số âm (dư có/trả trước), chú thích vẫn liệt kê đủ để cộng khớp tổng dư nợ
+  const duLieuTuoiVe = duLieuTuoiDuong.filter((d) => d.v > 0);
   const tren180 = tong ? tong.aging.d181_365 + tong.aging.d365 : 0;
   const tuan8 = chon ? chuoi8Tuan(chon.list, chon.ky.meta.ngayChot, chon.ky.meta.tuanNhan) : [];
   const cauTuan = cauQuaHanTuan(tuan8);
@@ -593,8 +628,8 @@ export function ManTong({
               <div className="relative mx-auto mt-2 h-40 w-full max-w-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={duLieuTuoiDuong} dataKey="v" nameKey="n" innerRadius={46} outerRadius={68} paddingAngle={2} isAnimationActive={false}>
-                      {duLieuTuoiDuong.map((d) => (
+                    <Pie data={duLieuTuoiVe} dataKey="v" nameKey="n" innerRadius={46} outerRadius={68} paddingAngle={2} isAnimationActive={false}>
+                      {duLieuTuoiVe.map((d) => (
                         <Cell key={d.k} fill={MAU_BUCKET[d.k] || '#1769aa'} />
                       ))}
                     </Pie>
@@ -830,18 +865,9 @@ export function ManTong({
             </div>
           </div>
 
-          <div className="space-y-3 pt-2">
-            <div className="border-b border-slate-100 pb-2">
-              <h3 className="text-[16px] font-semibold text-[#233543]">Dòng tiền và kế hoạch tham khảo</h3>
-              <p className="mt-1 text-[12px] text-[#81909d]">{CHU_TEST}</p>
-            </div>
-            <Khoi so={soBoTest('bt-tien-tuan', boLoc)!} />
-            <p className="text-[13px] text-[#506170]">{cauNetThap()}</p>
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <Khoi so={soBoTest('bt-ap-tuoi', boLoc)!} />
-              <DanhSachKeHoachMua boLoc={boLoc} />
-            </div>
-          </div>
+          <p className="rounded-xl border border-dashed border-[#dfe6ec] px-4 py-3 text-[12px] text-[#81909d]">
+            Phải trả, dòng tiền và kế hoạch mua hàng đang ở dạng số minh họa, xem riêng ở các mục «Sắp có» trên menu.
+          </p>
         </>
       ) : (
         <p className="rounded-xl bg-white p-4 text-sm text-slate-500">Phải thu: chưa nạp sổ.</p>
@@ -941,35 +967,47 @@ export function ManNap({ onKy }: { onKy: (ky: KetQua, tep: ArrayBuffer) => void 
           <p className="text-sm">
             {xem.tenFile} · chốt {ngay(xem.meta.ngayChot)} · dư nợ {ty(xem.tong.duNo)} · {xem.nhanDiem}
           </p>
-          {xem.loiDoc.length > 0 ? <p className="mt-2 text-sm text-red-700">{xem.loiDoc.join(' ')}</p> : null}
-          {xem.canhBao.length > 0 ? <p className="mt-2 text-sm text-amber-700">{xem.canhBao.join(' ')}</p> : null}
-          <div className="mt-3 overflow-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="text-slate-500">
-                <tr>
-                  <th className="py-1">Đối chiếu</th>
-                  <th>App</th>
-                  <th>Excel</th>
-                  <th>Lệch</th>
-                  <th>Kết quả</th>
-                </tr>
-              </thead>
-              <tbody>
-                {xem.kiemTra.map((r) => (
-                  <tr key={r.ten} className="border-t border-slate-100">
-                    <td className="py-1 pr-2">{r.ten}</td>
-                    <td className="so">{soLinh(r.app)}</td>
-                    <td className="so">{soLinh(r.excel)}</td>
-                    <td className="so">{soLinh(r.lech)}</td>
-                    <td>{r.dat ? 'Khớp' : 'Lệch'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <button type="button" disabled={!tep || xem.chanLuu || xem.loiDoc.length > 0} className="mt-4 rounded-lg bg-[#1769aa] px-3 py-2 text-sm text-white disabled:opacity-40" onClick={() => tep && onKy(xem, tep)}>
-            Dùng kỳ này
-          </button>
+          {xem.loiDoc.length > 0 ? (
+            <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+              <p className="font-semibold">File chưa đúng cấu trúc sổ công nợ, chưa thể dùng.</p>
+              <p className="mt-1">{xem.loiDoc.join(' ')}</p>
+              <p className="mt-1 text-red-700">Bấm «Tải file mẫu» để xem tên sheet và cột cần có.</p>
+            </div>
+          ) : (
+            <>
+              {xem.canhBao.length > 0 ? <p className="mt-2 text-sm text-amber-700">{xem.canhBao.join(' ')}</p> : null}
+              <p className={`mt-3 inline-flex rounded-md px-2 py-1 text-xs ${xem.kiemTra.every((r) => r.dat) ? 'bg-[#e5f6ee] text-[#27875b]' : 'bg-red-50 text-red-700'}`}>
+                Khớp {xem.kiemTra.filter((r) => r.dat).length}/{xem.kiemTra.length} phép đối chiếu
+              </p>
+              <div className="mt-3 overflow-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="text-slate-500">
+                    <tr>
+                      <th className="py-1">Đối chiếu</th>
+                      <th>App</th>
+                      <th>Excel</th>
+                      <th>Lệch</th>
+                      <th>Kết quả</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {xem.kiemTra.map((r) => (
+                      <tr key={r.ten} className="border-t border-slate-100">
+                        <td className="py-1 pr-2">{r.ten}</td>
+                        <td className="so">{soLinh(r.app)}</td>
+                        <td className="so">{soLinh(r.excel)}</td>
+                        <td className="so">{soLinh(r.lech)}</td>
+                        <td className={r.dat ? 'text-[#27875b]' : 'text-red-700'}>{r.dat ? 'Khớp' : 'Lệch'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button type="button" disabled={!tep || xem.chanLuu} className="mt-4 rounded-lg bg-[#1769aa] px-3 py-2 text-sm text-white disabled:opacity-40" onClick={() => tep && onKy(xem, tep)}>
+                Dùng kỳ này
+              </button>
+            </>
+          )}
         </section>
       ) : null}
     </div>

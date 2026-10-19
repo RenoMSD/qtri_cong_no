@@ -44,7 +44,7 @@ export function ManBo({ id, coSoThu }: { id: ManId; coSoThu: boolean }) {
   if (id === 'ap') {
     return (
       <div className="space-y-4">
-        <Tieu tieu="Dashboard phải trả" />
+        <Tieu tieu="Tổng quan phải trả" />
         <KhoiTest id="bt-ap-kpi" />
         <KhoiTest id="bt-ap-tuoi" />
         <KhoiTest id="bt-ap-ncc" />
@@ -136,7 +136,7 @@ export function ManBo({ id, coSoThu }: { id: ManId; coSoThu: boolean }) {
   if (id === 'tien') {
     return (
       <div className="space-y-4">
-        <Tieu tieu="Dashboard dòng tiền" />
+        <Tieu tieu="Tổng quan dòng tiền" />
         <KhoiTest id="bt-tien-kpi" />
         <KhoiTest id="bt-tien-tuan" />
       </div>
@@ -145,7 +145,7 @@ export function ManBo({ id, coSoThu }: { id: ManId; coSoThu: boolean }) {
   if (id === 'vi_the') {
     return (
       <div className="space-y-4">
-        <Tieu tieu="Cash position" />
+        <Tieu tieu="Số dư tiền" />
         <KhoiTest id="bt-tien-vi" />
       </div>
     );
@@ -153,7 +153,7 @@ export function ManBo({ id, coSoThu }: { id: ManId; coSoThu: boolean }) {
   if (id === 'dong_tien' || id === 'fc13' || id === 'lech') {
     return (
       <div className="space-y-4">
-        <Tieu tieu={id === 'fc13' ? 'Forecast 13 tuần' : id === 'lech' ? 'Cash gap' : 'Cash flow'} />
+        <Tieu tieu={id === 'fc13' ? 'Dự báo 13 tuần' : id === 'lech' ? 'Thiếu hụt tiền' : 'Lưu chuyển tiền'} />
         {id !== 'lech' ? <KhoiTest id="bt-tien-tuan" /> : null}
         <KhoiTest id={id === 'lech' ? 'bt-tien-lech' : 'bt-tien-du'} />
         <Bang

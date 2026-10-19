@@ -47,6 +47,17 @@ function tepTinh(): Plugin {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), tepTinh()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          bieudo: ['recharts'],
+          excel: ['xlsx'],
+          pdf: ['pdf-lib', '@pdf-lib/fontkit'],
+        },
+      },
+    },
+  },
   server: {
     port: 3000,
     strictPort: true,
